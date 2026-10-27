@@ -116,8 +116,11 @@ network access to some hosts (LunarG's SDK, ffmpeg.org, fteqcc.org). So:
   and Spatiand made it the environment ("an application became the environment"). But the runtime
   could not allocate exportable (dmabuf) memory on lavapipe, so no picture reached the compositor.
   Needed: a machine with a GPU (the Deck itself, in desktop mode, as spatiand's own conformance runs
-  are done), `SPATIAND_BACKEND=headless SPATIAND_HMD=null SPATIAND_INPUT=off`, then
-  `spatiquake.sh -xr`.
+  are done). `spatiquake/tools/test-with-spatiand.sh SPATIAND_REPO VKQUAKE BASEDIR OUT +map lq_e1m1`
+  does the whole run (snapshot backend, `SPATIAND_HMD=null SPATIAND_INPUT=off`, its own empty
+  config) and writes `room.png` (what the compositor composed) and the three `eyes-*.png`. Here it
+  ran as far as the GPU allows: "an application became the environment", then every frame's export
+  failed (and each took about a second, so the eye pictures were not reached).
 * Running on the Deck in a Spatiand session, and through `spatiand-host` to the glasses: needs the
   hardware.
 * Comfort and feel: world scale, snap angle, the 2D's size and distance, the gun's place, have not
