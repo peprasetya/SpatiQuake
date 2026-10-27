@@ -18,7 +18,7 @@ Console initialized.
 UDP4 Initialized
 UDPv6 Initialized
 Server using protocol 999+ (FTE-RMQ)
-Exe: 14:21:36 Oct 27 2026 
+Exe: 15:09:47 Oct 27 2026 
 SDL Video Driver: x11
 OpenXR: no runtime with XR_KHR_vulkan_enable2
 
@@ -86,8 +86,6 @@ from '/home/runner/work/SpatiQuake/SpatiQuake/game'
 execing quake.rc
 execing default.cfg
 execing config.cfg
-Disabling renderer/network isolation.
 couldn't exec autoexec.cfg
 execing spatiquake_smoke.cfg
-<-- server to client keepalive
 Client unconnected removed
