@@ -74,7 +74,9 @@ jobs:
     - name: To the menu
       run: chmod +x build/vkquake && spatiquake/tools/smoke-test.sh build/vkquake game shots/menu.png
     - name: Into a map
-      run: MAP=lq_e1m1 spatiquake/tools/smoke-test.sh build/vkquake game shots/e1m1.png
+      # Frames while the map loads go by at the engine's own pace, with nothing drawn: enough of
+      # them that there are frames drawn in the map after.
+      run: FRAMES=300 MAP=lq_e1m1 spatiquake/tools/smoke-test.sh build/vkquake game shots/e1m1.png
     - uses: actions/upload-artifact@v7
       if: always()
       with:
