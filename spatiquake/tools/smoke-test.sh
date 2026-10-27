@@ -7,7 +7,9 @@
 # e.g. "+map lq_e1m1". Without a DISPLAY an Xvfb is started; without a GPU Mesa's lavapipe draws.
 # FRAMES (default 60) is how many frames are drawn before the screenshot. SHOT (default
 # "screenshot png") is the command that takes it; with "xr_screenshot" (the OpenXR mode) there are
-# three pictures, saved as OUT with -left, -right and -2d before the .png.
+# three pictures, saved as OUT with -left, -right and -2d before the .png. MAP loads that map
+# first, from the test's own commands, so the frames counted are frames drawn in it (a +map given
+# in ARGS loads while they are being counted, and the screenshot would find nothing drawn).
 set -euo pipefail
 
 VKQUAKE="$(realpath "$1")"
@@ -30,6 +32,7 @@ fi
 # `wait` is the only way to ask for a frame from a script.
 CFG="$BASEDIR/id1/spatiquake_smoke.cfg"
 {
+    [[ -n "${MAP:-}" ]] && printf 'map %s\n' "$MAP"
     for ((i = 0; i < FRAMES; i++)); do printf 'wait\n'; done
     printf '%s\nwait\nwait\nwait\nwait\nquit\n' "$SHOT"
 } > "$CFG"

@@ -54,6 +54,8 @@ jobs:
   run:
     needs: [build, data]
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     steps:
     - uses: actions/checkout@v6
     - name: Dependencies
@@ -72,12 +74,15 @@ jobs:
     - name: To the menu
       run: chmod +x build/vkquake && spatiquake/tools/smoke-test.sh build/vkquake game shots/menu.png
     - name: Into a map
-      run: spatiquake/tools/smoke-test.sh build/vkquake game shots/e1m1.png +map lq_e1m1
+      run: MAP=lq_e1m1 spatiquake/tools/smoke-test.sh build/vkquake game shots/e1m1.png
     - uses: actions/upload-artifact@v7
       if: always()
       with:
         name: screenshots
         path: shots
+    - name: Screenshots to the ci-screenshots branch
+      if: always() && github.event_name == 'push' && github.ref == 'refs/heads/master'
+      run: spatiquake/tools/publish-screenshots.sh shots run
 
   # The OpenXR mode against Spatiand's own runtime (built from peprasetya/spatiand), with no
   # compositor: the session, swapchains, frame loop, layers and actions are all checked by the
@@ -85,6 +90,8 @@ jobs:
   xr:
     needs: [build, data]
     runs-on: ubuntu-24.04
+    permissions:
+      contents: write
     steps:
     - uses: actions/checkout@v6
     - name: Dependencies
@@ -119,13 +126,16 @@ jobs:
       run: |
         chmod +x build/vkquake
         export XR_RUNTIME_JSON=$HOME/.local/share/spatiand-openxr/spatiand_openxr.json SPATIAND_OPENXR_STDERR=1
-        SHOT=xr_screenshot FRAMES=120 spatiquake/tools/smoke-test.sh build/vkquake game shots/xr.png -xr +map lq_e1m1
+        MAP=lq_e1m1 SHOT=xr_screenshot FRAMES=120 spatiquake/tools/smoke-test.sh build/vkquake game shots/xr.png -xr
         grep -E "OpenXR: .*failed" shots/xr.log && exit 1 || true
     - uses: actions/upload-artifact@v7
       if: always()
       with:
         name: xr-screenshots
         path: shots
+    - name: Screenshots to the ci-screenshots branch
+      if: always() && github.event_name == 'push' && github.ref == 'refs/heads/master'
+      run: spatiquake/tools/publish-screenshots.sh shots xr
 
   # The release: SpatiQuake as a Spatiand application, SpatiQuake-<version>.spatiapp (dropped into
   # the room, Spatiand offers to install it). The engine is built on Ubuntu 22.04 in upstream's
