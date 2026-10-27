@@ -1,4 +1,4 @@
-spatiand-openxr [ INFO] spatiand-openxr 0.1.0 loaded in pid 4068
+spatiand-openxr [ INFO] spatiand-openxr 0.1.0 loaded in pid 3174
 spatiand-openxr [ INFO] negotiated with the loader
 spatiand-openxr [ INFO] xrCreateInstance for "SpatiQuake" with ["XR_KHR_vulkan_enable2"]
 spatiand-openxr [DEBUG] xrGetOpenGLGraphicsRequirementsKHR was asked for and is not implemented
@@ -227,7 +227,7 @@ Console initialized.
 UDP4 Initialized
 UDPv6 Initialized
 Server using protocol 999+ (FTE-RMQ)
-Exe: 13:50:50 Oct 27 2026 
+Exe: 14:05:37 Oct 27 2026 
 SDL Video Driver: x11
 OpenXR runtime: Spatiand 0.1.0
 OpenXR: 1920 x 1080 per eye
@@ -327,7 +327,7 @@ Allocating indirect draw data (4 KB, 229 draws)
 Allocating indirect IBs (504 KB)
 Allocating visibility buffers (5 KB)
 Reallocating dynamic storage buffers (2 KB)
-Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-135226-00.png
-Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-135230-00.png
-Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-135230-01.png
+Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-140711-00.png
+Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-140715-00.png
+Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-140715-01.png
 Client player removed

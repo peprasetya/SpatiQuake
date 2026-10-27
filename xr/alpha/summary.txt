@@ -1,4 +1,7 @@
-skip mask 0: alpha at the centre = 0.666667; 
-skip mask 16: alpha at the centre = 0.666667; XR_DEBUG_2D: key_dest 1 m_state 16 paused 0
-skip mask 64: alpha at the centre = 0.666667; XR_DEBUG_2D: key_dest 1 m_state 16 paused 0
-skip mask 128: alpha at the centre = 0; XR_DEBUG_2D: key_dest 3 m_state 16 paused 0
+default: alpha at the centre = none
+vid_fsaa_0: alpha at the centre = none
+r_oit_0: alpha at the centre = none
+r_ssao_0: alpha at the centre = none
+scr_sbaralpha_1: alpha at the centre = none
+gl_polyblend_0: alpha at the centre = none
+r_oit_0-vid_fsaa_0-r_ssao_0: alpha at the centre = none
