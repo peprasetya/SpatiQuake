@@ -152,6 +152,9 @@ static void XR_UnloadLibrary (void)
 
 static qboolean XR_LoadGlobal (void)
 {
+	// Without a runtime the loader would print errors for what is only the flat case.
+	if (!getenv ("XR_LOADER_DEBUG"))
+		SDL_setenv ("XR_LOADER_DEBUG", "none", 0);
 	xr_library = SDL_LoadObject (XR_LOADER_LIBRARY);
 	if (!xr_library)
 	{

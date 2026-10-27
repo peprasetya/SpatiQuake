@@ -1,0 +1,13 @@
+# SpatiQuake in spatiand-host's catalogue (~/.config/spatiand-host/apps.toml), streamed to the
+# glasses as the room. Spatiand's OpenXR runtime must be installed on the host
+# (tools/install-openxr.sh in the spatiand repository). Replace RELEASE with the folder the
+# release was unpacked into and HOME with the host user's home.
+[[app]]
+id = "spatiquake"
+name = "SpatiQuake"
+icon = "RELEASE/spatiquake.png"
+exec = "RELEASE/spatiquake.sh"
+args = ["-xr"]
+env = [["XR_RUNTIME_JSON", "HOME/.local/share/spatiand-openxr/spatiand_openxr.json"]]
+kind = "vr"
+eyes = "side_by_side"

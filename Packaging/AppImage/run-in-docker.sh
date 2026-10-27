@@ -19,6 +19,8 @@ rm -rf vkquake* vkQuake-*
 
 # NO_STRIP keeps the debug info in the binary for symbolizing crash
 # reports; the sections are not loaded at runtime
+# the OpenXR loader is opened at run time (the OpenXR mode), so linuxdeploy would not see it
 NO_STRIP=1 ./linuxdeploy-x86_64.AppImage \
 	-e ../../build/appimage/vkquake --appdir=AppDir -d ../../Misc/vkquake.desktop \
+	-l /usr/lib/x86_64-linux-gnu/libopenxr_loader.so.1 \
 	-i ../../Misc/vkQuake_256.png --icon-filename=vkquake --output appimage
