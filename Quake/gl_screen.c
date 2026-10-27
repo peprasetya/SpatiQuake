@@ -1592,9 +1592,12 @@ static void SCR_DrawGUI (void *unused)
 	GL_SetCanvas (cbx, CANVAS_DEFAULT);
 	R_BindGraphicsPipeline (cbx, PIPELINE_BASIC_BLEND);
 
+	// DEBUG (branch debug-2d): XR_DEBUG_2D is a mask of what not to draw
+	const int dbg = getenv ("XR_DEBUG_2D") ? atoi (getenv ("XR_DEBUG_2D")) : 0;
 	// FIXME: only call this when needed
 	R_BeginDebugUtilsLabel (cbx, "2D");
-	SCR_TileClear (cbx);
+	if (!(dbg & 1))
+		SCR_TileClear (cbx);
 
 	const qboolean cscqhud = (scr_style.value < 1.0f) && cl.qcvm.extfuncs.CSQC_DrawHud;
 
@@ -1629,20 +1632,30 @@ static void SCR_DrawGUI (void *unused)
 	{
 		if (!XR_Enabled ())			 // the OpenXR mode's 2D is fixed to the head, and the aim is not
 			SCR_DrawCrosshair (cbx); // johnfitz
-		SCR_DrawNet (cbx);
-		SCR_DrawTurtle (cbx);
-		SCR_DrawPause (cbx);
-		SCR_DrawSaving (cbx);
-		SCR_CheckDrawCenterString (cbx);
-		Sbar_Draw (cbx);
-		SCR_DrawDevStats (cbx); // johnfitz
-		SCR_DrawSpeed (cbx);
-		SCR_DrawFPS (cbx); // johnfitz
-		SCR_DrawSpeeds (cbx);
-		SCR_DrawClock (cbx); // johnfitz
-		SCR_DrawEdictInfo (cbx);
-		SCR_DrawConsole (cbx);
-		M_Draw (cbx);
+		if (!(dbg & 16))
+		{
+			SCR_DrawNet (cbx);
+			SCR_DrawTurtle (cbx);
+			SCR_DrawPause (cbx);
+			SCR_DrawSaving (cbx);
+		}
+		if (!(dbg & 8))
+			SCR_CheckDrawCenterString (cbx);
+		if (!(dbg & 2))
+			Sbar_Draw (cbx);
+		if (!(dbg & 16))
+		{
+			SCR_DrawDevStats (cbx); // johnfitz
+			SCR_DrawSpeed (cbx);
+			SCR_DrawFPS (cbx); // johnfitz
+			SCR_DrawSpeeds (cbx);
+			SCR_DrawClock (cbx); // johnfitz
+			SCR_DrawEdictInfo (cbx);
+		}
+		if (!(dbg & 4))
+			SCR_DrawConsole (cbx);
+		if (!(dbg & 16))
+			M_Draw (cbx);
 	}
 
 	SDL_UnlockMutex (draw_qcvm_mutex);
@@ -1698,7 +1711,8 @@ static qboolean SCR_DrawXRTarget (xr_target_t target, const vec3_t base_origin, 
 		v_blend[3] = 0.0f; // the world's tint is in the eyes' pictures
 		render_warp = false;
 		XR_SetDrawingEye (-1);
-		SCR_DrawGUI (NULL);
+		if (!getenv ("XR_DEBUG_EMPTY_2D"))
+			SCR_DrawGUI (NULL);
 		SCR_DrawDone (NULL);
 		GL_EndRendering (false, true);
 		vulkan_globals.color_clear_value = saved_clear;
