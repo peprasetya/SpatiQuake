@@ -32,13 +32,17 @@ fi
 # `wait` is the only way to ask for a frame from a script.
 CFG="$BASEDIR/id1/spatiquake_smoke.cfg"
 {
+    # Frames at a known pace: without a cap a frame with nothing to draw (a map loading) is over
+    # in no time, and the frames counted would pass before the game had even begun.
+    printf 'host_maxfps 60\n'
     [[ -n "${MAP:-}" ]] && printf 'map %s\n' "$MAP"
     for ((i = 0; i < FRAMES; i++)); do printf 'wait\n'; done
     # Then frames enough for it to be written: a frame that does not get an image from the window's
     # swap chain (FIFO under Xvfb) does not take the picture, and the engine moves on.
     printf '%s\n' "$SHOT"
     for ((i = 0; i < 30; i++)); do printf 'wait\n'; done
-    printf 'quit\n'
+    # In a game, quit asks first (a menu); disconnected, it does not.
+    printf 'disconnect\nwait\nquit\n'
 } > "$CFG"
 STAMP="$BASEDIR/id1/.spatiquake_smoke_start"
 touch "$STAMP"
