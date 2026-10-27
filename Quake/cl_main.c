@@ -1067,6 +1067,7 @@ void CL_SendCmd (void)
 	cmd.forwardmove += cl.pendingcmd.forwardmove + cl.pendingcmd.forwardmove_accumulator;
 	cmd.sidemove += cl.pendingcmd.sidemove + cl.pendingcmd.sidemove_accumulator;
 	cmd.upmove += cl.pendingcmd.upmove + cl.pendingcmd.upmove_accumulator;
+	XR_AdjustMove (&cmd);
 	cmd.sequence = cl.movemessages;
 	cmd.servertime = cl.time;
 	cmd.seconds = cmd.servertime - cl.pendingcmd.servertime;

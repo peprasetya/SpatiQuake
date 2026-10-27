@@ -1707,7 +1707,7 @@ static qboolean SCR_DrawXRTarget (xr_target_t target, const vec3_t base_origin, 
 	{
 		vec3_t offset, angles;
 		float  fov_x, fov_y;
-		XR_GetEyeView ((int)target, base_angles[YAW], offset, angles, &fov_x, &fov_y);
+		XR_GetEyeView ((int)target, XR_BodyYaw (), offset, angles, &fov_x, &fov_y);
 		VectorAdd (base_origin, offset, r_refdef.vieworg);
 		VectorCopy (angles, r_refdef.viewangles);
 		r_refdef.fov_x = fov_x;
@@ -1764,6 +1764,12 @@ static void SCR_UpdateScreenXR (void)
 	VectorCopy (r_refdef.vieworg, base_origin);
 	VectorCopy (r_refdef.viewangles, base_angles);
 	const float base_fov_x = r_refdef.fov_x, base_fov_y = r_refdef.fov_y;
+
+	// The weapon is held at the head, pointing where the aim is (V_CalcRefdef gave it the aim's
+	// angles); it does not turn with the head.
+	vec3_t head_offset, head_angles;
+	if (XR_GetHeadView (XR_BodyYaw (), head_offset, head_angles))
+		VectorAdd (cl.viewent.origin, head_offset, cl.viewent.origin);
 
 	const qboolean screenshots = xr_screenshot_pending;
 	xr_screenshot_pending = false;

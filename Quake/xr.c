@@ -36,9 +36,16 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define XR_LOADER_LIBRARY "libopenxr_loader.so.1"
 #endif
 
+static void XR_InitActions (void);
+
 cvar_t		  xr_worldscale = {"xr_worldscale", "32", CVAR_ARCHIVE};	  // Quake units in a metre
 static cvar_t xr_hud_distance = {"xr_hud_distance", "1.5", CVAR_ARCHIVE}; // metres in front of the head
 static cvar_t xr_hud_size = {"xr_hud_size", "0.85", CVAR_ARCHIVE};		  // of the eyes' field across
+static cvar_t xr_aim = {"xr_aim", "1", CVAR_ARCHIVE};					  // 0: the head aims, 1: the right hand's aim pose
+static cvar_t xr_snapturn = {"xr_snapturn", "30", CVAR_ARCHIVE};		  // degrees a flick of the right stick turns; 0: smooth
+static cvar_t xr_turnspeed = {"xr_turnspeed", "120", CVAR_ARCHIVE};		  // degrees a second, smooth turning
+static cvar_t xr_deadzone = {"xr_deadzone", "0.2", CVAR_ARCHIVE};
+static cvar_t xr_bindings = {"xr_bindings", "1", CVAR_ARCHIVE}; // put the OpenXR mode's default binds on at start
 
 // The entry points, all found through xrGetInstanceProcAddr.
 #define XR_FUNCTIONS                               \
@@ -71,7 +78,19 @@ static cvar_t xr_hud_size = {"xr_hud_size", "0.85", CVAR_ARCHIVE};		  // of the 
 	XR_FN (xrReleaseSwapchainImage)                \
 	XR_FN (xrWaitFrame)                            \
 	XR_FN (xrBeginFrame)                           \
-	XR_FN (xrEndFrame)
+	XR_FN (xrEndFrame)                             \
+	XR_FN (xrStringToPath)                         \
+	XR_FN (xrCreateActionSet)                      \
+	XR_FN (xrCreateAction)                         \
+	XR_FN (xrSuggestInteractionProfileBindings)    \
+	XR_FN (xrAttachSessionActionSets)              \
+	XR_FN (xrSyncActions)                          \
+	XR_FN (xrGetActionStateBoolean)                \
+	XR_FN (xrGetActionStateFloat)                  \
+	XR_FN (xrGetActionStateVector2f)               \
+	XR_FN (xrGetActionStatePose)                   \
+	XR_FN (xrCreateActionSpace)                    \
+	XR_FN (xrLocateSpace)
 
 #define XR_FN(name) static PFN_##name q##name;
 XR_FUNCTIONS
@@ -87,6 +106,7 @@ static XrSession  xr_session = XR_NULL_HANDLE;
 static XrSpace	  xr_local_space = XR_NULL_HANDLE;
 static XrSpace	  xr_view_space = XR_NULL_HANDLE;
 static qboolean	  xr_session_running;
+static qboolean	  xr_session_focused;
 static SDL_Mutex *xr_queue_mutex;
 
 static uint32_t xr_eye_width, xr_eye_height;
@@ -163,6 +183,17 @@ static qboolean XR_LoadInstanceFunctions (void)
 	return ok;
 }
 
+// +aimhold: the aim stays where it is in the world while the head looks round.
+static qboolean xr_aim_held;
+static void		XR_AimHoldDown_f (void)
+{
+	xr_aim_held = true;
+}
+static void XR_AimHoldUp_f (void)
+{
+	xr_aim_held = false;
+}
+
 /*
 ===============
 XR_Init
@@ -173,6 +204,14 @@ qboolean XR_Init (void)
 	Cvar_RegisterVariable (&xr_worldscale);
 	Cvar_RegisterVariable (&xr_hud_distance);
 	Cvar_RegisterVariable (&xr_hud_size);
+	Cvar_RegisterVariable (&xr_aim);
+	Cvar_RegisterVariable (&xr_snapturn);
+	Cvar_RegisterVariable (&xr_turnspeed);
+	Cvar_RegisterVariable (&xr_deadzone);
+	Cvar_RegisterVariable (&xr_bindings);
+	Cmd_AddCommand ("+aimhold", XR_AimHoldDown_f);
+	Cmd_AddCommand ("-aimhold", XR_AimHoldUp_f);
+	Cmd_AddCommand ("xr_applybindings", XR_ApplyBindings);
 
 	if (COM_CheckParm ("-noxr"))
 		return false;
@@ -353,6 +392,7 @@ void XR_CreateSession (VkInstance instance, VkPhysicalDevice physical_device, Vk
 	if (!XR_Check (qxrCreateReferenceSpace (xr_session, &space_info, &xr_view_space), "xrCreateReferenceSpace (view)"))
 		Sys_Error ("OpenXR: no view space");
 	Con_Printf ("OpenXR: session made\n");
+	XR_InitActions ();
 }
 
 void XR_GetEyeSize (int *width, int *height)
@@ -480,6 +520,12 @@ static void XR_PollEvents (void)
 				}
 				break;
 			}
+			case XR_SESSION_STATE_FOCUSED:
+				xr_session_focused = true;
+				break;
+			case XR_SESSION_STATE_VISIBLE:
+				xr_session_focused = false;
+				break;
 			case XR_SESSION_STATE_STOPPING:
 				qxrEndSession (xr_session);
 				xr_session_running = false;
@@ -755,13 +801,365 @@ qboolean XR_EyeProjection (float matrix[16], float near_clip)
 	return true;
 }
 
+/*
+===============
+Input
+
+OpenXR actions, bound on the Touch controller (which is how Spatiand presents the gamepad) and
+on the simple controller. Buttons arrive as the gamepad keys vkQuake already binds and navigates
+its menus with; the sticks move and turn; the right hand's aim pose aims.
+===============
+*/
+typedef struct
+{
+	const char	*name;
+	const char	*localized;
+	XrActionType type;
+	int			 key; // the key it presses, for a button
+	XrAction	 handle;
+	qboolean	 down;
+} xr_action_t;
+
+enum
+{
+	XRA_MOVE,
+	XRA_TURN,
+	XRA_AIM,
+	XRA_FIRE,
+	XRA_AIMHOLD,
+	XRA_JUMP,
+	XRA_B,
+	XRA_X,
+	XRA_Y,
+	XRA_MENU,
+	XRA_LSQUEEZE,
+	XRA_RSQUEEZE,
+	XRA_LTHUMB,
+	XRA_RTHUMB,
+	XRA_COUNT
+};
+
+static xr_action_t xr_actions[XRA_COUNT] = {
+	{"move", "Move", XR_ACTION_TYPE_VECTOR2F_INPUT},
+	{"turn", "Turn", XR_ACTION_TYPE_VECTOR2F_INPUT},
+	{"aim", "Aim", XR_ACTION_TYPE_POSE_INPUT},
+	{"fire", "Fire", XR_ACTION_TYPE_BOOLEAN_INPUT, K_RTRIGGER},
+	{"aim_hold", "Hold the aim", XR_ACTION_TYPE_BOOLEAN_INPUT, K_LTRIGGER},
+	{"jump", "Jump", XR_ACTION_TYPE_BOOLEAN_INPUT, K_ABUTTON},
+	{"button_b", "B", XR_ACTION_TYPE_BOOLEAN_INPUT, K_BBUTTON},
+	{"button_x", "X", XR_ACTION_TYPE_BOOLEAN_INPUT, K_XBUTTON},
+	{"button_y", "Y", XR_ACTION_TYPE_BOOLEAN_INPUT, K_YBUTTON},
+	{"menu", "Menu", XR_ACTION_TYPE_BOOLEAN_INPUT, K_ESCAPE},
+	{"left_squeeze", "Left grip", XR_ACTION_TYPE_BOOLEAN_INPUT, K_LSHOULDER},
+	{"right_squeeze", "Right grip", XR_ACTION_TYPE_BOOLEAN_INPUT, K_RSHOULDER},
+	{"left_stick_click", "Left stick click", XR_ACTION_TYPE_BOOLEAN_INPUT, K_LTHUMB},
+	{"right_stick_click", "Right stick click", XR_ACTION_TYPE_BOOLEAN_INPUT, K_RTHUMB},
+};
+
+static XrActionSet xr_action_set = XR_NULL_HANDLE;
+static XrSpace	   xr_aim_space = XR_NULL_HANDLE;
+static qboolean	   xr_actions_ready;
+
+typedef struct
+{
+	const char *action;
+	const char *path;
+} xr_binding_t;
+
+static const xr_binding_t xr_touch_bindings[] = {
+	{"move", "/user/hand/left/input/thumbstick"},
+	{"turn", "/user/hand/right/input/thumbstick"},
+	{"aim", "/user/hand/right/input/aim/pose"},
+	{"fire", "/user/hand/right/input/trigger/value"},
+	{"aim_hold", "/user/hand/left/input/trigger/value"},
+	{"jump", "/user/hand/right/input/a/click"},
+	{"button_b", "/user/hand/right/input/b/click"},
+	{"button_x", "/user/hand/left/input/x/click"},
+	{"button_y", "/user/hand/left/input/y/click"},
+	{"menu", "/user/hand/left/input/menu/click"},
+	{"left_squeeze", "/user/hand/left/input/squeeze/value"},
+	{"right_squeeze", "/user/hand/right/input/squeeze/value"},
+	{"left_stick_click", "/user/hand/left/input/thumbstick/click"},
+	{"right_stick_click", "/user/hand/right/input/thumbstick/click"},
+};
+
+static const xr_binding_t xr_simple_bindings[] = {
+	{"aim", "/user/hand/right/input/aim/pose"},
+	{"fire", "/user/hand/right/input/select/click"},
+	{"menu", "/user/hand/left/input/menu/click"},
+};
+
+static XrPath XR_Path (const char *text)
+{
+	XrPath path = XR_NULL_PATH;
+	qxrStringToPath (xr_instance, text, &path);
+	return path;
+}
+
+static void XR_SuggestBindings (const char *profile, const xr_binding_t *bindings, int count)
+{
+	XrActionSuggestedBinding suggested[XRA_COUNT];
+	int						 n = 0;
+	for (int i = 0; i < count && n < XRA_COUNT; ++i)
+		for (int a = 0; a < XRA_COUNT; ++a)
+			if (!strcmp (xr_actions[a].name, bindings[i].action))
+			{
+				suggested[n].action = xr_actions[a].handle;
+				suggested[n].binding = XR_Path (bindings[i].path);
+				++n;
+			}
+	XrInteractionProfileSuggestedBinding info = {XR_TYPE_INTERACTION_PROFILE_SUGGESTED_BINDING};
+	info.interactionProfile = XR_Path (profile);
+	info.countSuggestedBindings = n;
+	info.suggestedBindings = suggested;
+	XR_Check (qxrSuggestInteractionProfileBindings (xr_instance, &info), profile);
+}
+
+static void XR_InitActions (void)
+{
+	XrActionSetCreateInfo set_info = {XR_TYPE_ACTION_SET_CREATE_INFO};
+	q_strlcpy (set_info.actionSetName, "gameplay", sizeof (set_info.actionSetName));
+	q_strlcpy (set_info.localizedActionSetName, "Gameplay", sizeof (set_info.localizedActionSetName));
+	if (!XR_Check (qxrCreateActionSet (xr_instance, &set_info, &xr_action_set), "xrCreateActionSet"))
+		return;
+	for (int a = 0; a < XRA_COUNT; ++a)
+	{
+		XrActionCreateInfo info = {XR_TYPE_ACTION_CREATE_INFO};
+		q_strlcpy (info.actionName, xr_actions[a].name, sizeof (info.actionName));
+		q_strlcpy (info.localizedActionName, xr_actions[a].localized, sizeof (info.localizedActionName));
+		info.actionType = xr_actions[a].type;
+		if (!XR_Check (qxrCreateAction (xr_action_set, &info, &xr_actions[a].handle), "xrCreateAction"))
+			return;
+	}
+	XR_SuggestBindings ("/interaction_profiles/oculus/touch_controller", xr_touch_bindings, countof (xr_touch_bindings));
+	XR_SuggestBindings ("/interaction_profiles/khr/simple_controller", xr_simple_bindings, countof (xr_simple_bindings));
+
+	XrActionSpaceCreateInfo space_info = {XR_TYPE_ACTION_SPACE_CREATE_INFO};
+	space_info.action = xr_actions[XRA_AIM].handle;
+	space_info.poseInActionSpace.orientation.w = 1.0f;
+	XR_Check (qxrCreateActionSpace (xr_session, &space_info, &xr_aim_space), "xrCreateActionSpace");
+
+	XrSessionActionSetsAttachInfo attach = {XR_TYPE_SESSION_ACTION_SETS_ATTACH_INFO};
+	attach.countActionSets = 1;
+	attach.actionSets = &xr_action_set;
+	if (XR_Check (qxrAttachSessionActionSets (xr_session, &attach), "xrAttachSessionActionSets"))
+		xr_actions_ready = true;
+}
+
+qboolean XR_InputActive (void)
+{
+	return xr_enabled && xr_actions_ready && xr_session_running && xr_session_focused;
+}
+
+static qboolean XR_Bool (int a)
+{
+	XrActionStateGetInfo info = {XR_TYPE_ACTION_STATE_GET_INFO};
+	info.action = xr_actions[a].handle;
+	XrActionStateBoolean state = {XR_TYPE_ACTION_STATE_BOOLEAN};
+	if (XR_SUCCEEDED (qxrGetActionStateBoolean (xr_session, &info, &state)) && state.isActive)
+		return state.currentState;
+	return false;
+}
+
+static void XR_Stick (int a, float *x, float *y)
+{
+	XrActionStateGetInfo info = {XR_TYPE_ACTION_STATE_GET_INFO};
+	info.action = xr_actions[a].handle;
+	XrActionStateVector2f state = {XR_TYPE_ACTION_STATE_VECTOR2F};
+	*x = *y = 0.0f;
+	if (XR_SUCCEEDED (qxrGetActionStateVector2f (xr_session, &info, &state)) && state.isActive)
+	{
+		const float length = sqrtf (state.currentState.x * state.currentState.x + state.currentState.y * state.currentState.y);
+		const float dead = CLAMP (0.0f, xr_deadzone.value, 0.9f);
+		if (length > dead)
+		{
+			const float scale = q_min (1.0f, (length - dead) / (1.0f - dead)) / length;
+			*x = state.currentState.x * scale;
+			*y = state.currentState.y * scale;
+		}
+	}
+}
+
+// The body's yaw: what turning turns. The view is the head's pose turned by it.
+static float	xr_body_yaw;
+static qboolean xr_body_yaw_set;
+static float	xr_last_aim_yaw;
+static vec3_t	xr_aim_angles;	// what the weapon points at, and the server is told
+static vec3_t	xr_held_angles; // the aim while +aimhold is down
+static qboolean xr_holding;
+static float	xr_turn_stick_prev;
+static int		xr_menu_dirs; // the left stick's direction keys held, while in a menu
+
+float XR_BodyYaw (void)
+{
+	return xr_body_yaw;
+}
+
+static void XR_StickToKeys (float x, float y)
+{
+	static const int keys[4] = {K_UPARROW, K_DOWNARROW, K_LEFTARROW, K_RIGHTARROW};
+	int				 dirs = 0;
+	if (y > 0.6f)
+		dirs |= 1;
+	if (y < -0.6f)
+		dirs |= 2;
+	if (x < -0.6f)
+		dirs |= 4;
+	if (x > 0.6f)
+		dirs |= 8;
+	for (int i = 0; i < 4; ++i)
+		if ((dirs ^ xr_menu_dirs) & (1 << i))
+			Key_Event (keys[i], (dirs & (1 << i)) != 0);
+	xr_menu_dirs = dirs;
+}
+
+/*
+===============
+XR_UpdateInput
+
+Once a frame, after the engine's own input: the buttons become key events, the right stick turns
+the body, and the aim is decided (and written into cl.viewangles, which is what the server and the
+weapon use). Turning that the engine's own input did (mouse, keys) is taken as a turn of the body.
+===============
+*/
+void XR_UpdateInput (void)
+{
+	if (!xr_enabled || !xr_session_running)
+		return;
+
+	if (!xr_body_yaw_set)
+	{
+		xr_body_yaw = xr_last_aim_yaw = cl.viewangles[YAW];
+		xr_body_yaw_set = true;
+	}
+	// The engine's own turning (mouse, keys, a spawn's angle from the server) turns the body.
+	const float engine_turn = cl.viewangles[YAW] - xr_last_aim_yaw;
+	xr_body_yaw = anglemod (xr_body_yaw + engine_turn);
+
+	float move_x = 0.0f, move_y = 0.0f, turn_x = 0.0f, turn_y = 0.0f;
+	if (XR_InputActive ())
+	{
+		XrActiveActionSet active = {xr_action_set, XR_NULL_PATH};
+		XrActionsSyncInfo sync = {XR_TYPE_ACTIONS_SYNC_INFO};
+		sync.countActiveActionSets = 1;
+		sync.activeActionSets = &active;
+		if (XR_SUCCEEDED (qxrSyncActions (xr_session, &sync)))
+		{
+			for (int a = 0; a < XRA_COUNT; ++a)
+			{
+				if (xr_actions[a].type != XR_ACTION_TYPE_BOOLEAN_INPUT)
+					continue;
+				const qboolean down = XR_Bool (a);
+				if (down != xr_actions[a].down)
+				{
+					xr_actions[a].down = down;
+					Key_Event (xr_actions[a].key, down);
+				}
+			}
+			XR_Stick (XRA_MOVE, &move_x, &move_y);
+			XR_Stick (XRA_TURN, &turn_x, &turn_y);
+		}
+	}
+
+	if (key_dest == key_game)
+	{
+		if (xr_menu_dirs)
+			XR_StickToKeys (0.0f, 0.0f);
+		if (xr_snapturn.value > 0.0f)
+		{
+			// A flick past half way turns once; the stick has to come back before it turns again.
+			if (fabsf (turn_x) > 0.5f && fabsf (xr_turn_stick_prev) <= 0.5f)
+				xr_body_yaw = anglemod (xr_body_yaw - (turn_x > 0 ? 1 : -1) * xr_snapturn.value);
+		}
+		else
+			xr_body_yaw = anglemod (xr_body_yaw - turn_x * xr_turnspeed.value * host_frametime);
+		xr_turn_stick_prev = turn_x;
+		cl.xr_move[0] = move_y;
+		cl.xr_move[1] = move_x;
+	}
+	else
+	{
+		XR_StickToKeys (move_x, move_y);
+		cl.xr_move[0] = cl.xr_move[1] = 0.0f;
+	}
+
+	// The aim: the right hand's aim pose (where the runtime has one), or the head; while held, where
+	// it was in the world when the hold began.
+	vec3_t offset, head_angles, aim_angles;
+	if (!XR_GetHeadView (xr_body_yaw, offset, head_angles))
+	{
+		head_angles[PITCH] = head_angles[ROLL] = 0.0f;
+		head_angles[YAW] = xr_body_yaw;
+	}
+	VectorCopy (head_angles, aim_angles);
+	if (xr_aim.value && xr_aim_space != XR_NULL_HANDLE && xr_frame_state.predictedDisplayTime)
+	{
+		XrSpaceLocation location = {XR_TYPE_SPACE_LOCATION};
+		if (XR_SUCCEEDED (qxrLocateSpace (xr_aim_space, xr_local_space, xr_frame_state.predictedDisplayTime, &location)) &&
+			(location.locationFlags & XR_SPACE_LOCATION_ORIENTATION_VALID_BIT))
+			XR_PoseAngles (&location.pose.orientation, xr_body_yaw, aim_angles);
+	}
+	aim_angles[ROLL] = 0.0f;
+
+	if (xr_aim_held && !xr_holding)
+		VectorCopy (xr_aim_angles, xr_held_angles);
+	xr_holding = xr_aim_held;
+	VectorCopy (xr_holding ? xr_held_angles : aim_angles, xr_aim_angles);
+
+	cl.xr_head_yaw = head_angles[YAW];
+	if (key_dest == key_game && !CL_AngleLocked ())
+		VectorCopy (xr_aim_angles, cl.viewangles);
+	xr_last_aim_yaw = cl.viewangles[YAW];
+}
+
+/*
+===============
+XR_AdjustMove
+
+The sticks move relative to where the head looks; the server moves relative to the angles it is
+sent, which are the aim's. So the move is turned from the one into the other.
+===============
+*/
+void XR_AdjustMove (usercmd_t *cmd)
+{
+	if (!xr_enabled || !xr_session_running)
+		return;
+	extern cvar_t sv_maxspeed;
+	const float	  speed = ((in_speed.state & 1) ^ (cl_alwaysrun.value != 0.0f)) ? sv_maxspeed.value : cl_forwardspeed.value;
+	float		  forward = cmd->forwardmove + speed * cl.xr_move[0];
+	float		  side = cmd->sidemove + speed * cl.xr_move[1];
+	const float	  d = DEG2RAD (cl.xr_head_yaw - cl.viewangles[YAW]);
+	cmd->forwardmove = forward * cosf (d) + side * sinf (d);
+	cmd->sidemove = -forward * sinf (d) + side * cosf (d);
+}
+
+// The default binds of the OpenXR mode, over whatever the configs said, unless xr_bindings is 0.
+void XR_ApplyBindings (void)
+{
+	if (!xr_enabled || !xr_bindings.value)
+		return;
+	Key_SetBinding (K_RTRIGGER, "+attack");
+	Key_SetBinding (K_LTRIGGER, "+aimhold");
+	Key_SetBinding (K_ABUTTON, "+jump");
+	Key_SetBinding (K_BBUTTON, "impulse 10");
+	Key_SetBinding (K_XBUTTON, "+use");
+	Key_SetBinding (K_YBUTTON, "impulse 12");
+	Key_SetBinding (K_LSHOULDER, "+speed");
+	Key_SetBinding (K_RSHOULDER, "impulse 10");
+	Key_SetBinding (K_LTHUMB, "+speed");
+	Key_SetBinding (K_RTHUMB, "centerview");
+}
+
 #else // !USE_OPENXR: built without OpenXR's headers, the engine is flat
 
 cvar_t xr_worldscale = {"xr_worldscale", "32", CVAR_ARCHIVE};
 
+void XR_ApplyBindings (void) {}
+
 qboolean XR_Init (void)
 {
 	Cvar_RegisterVariable (&xr_worldscale);
+	Cmd_AddCommand ("xr_applybindings", XR_ApplyBindings);
 	return false;
 }
 qboolean XR_Enabled (void)
@@ -820,5 +1218,15 @@ qboolean XR_GetHeadView (float body_yaw, vec3_t origin_offset, vec3_t angles)
 {
 	return false;
 }
+qboolean XR_InputActive (void)
+{
+	return false;
+}
+float XR_BodyYaw (void)
+{
+	return 0.0f;
+}
+void XR_UpdateInput (void) {}
+void XR_AdjustMove (usercmd_t *cmd) {}
 
 #endif

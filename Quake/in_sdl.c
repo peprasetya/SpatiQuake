@@ -641,7 +641,7 @@ void IN_Commands (void)
 	const float	   stickthreshold = 0.9;
 	const float	   triggerthreshold = joy_deadzone_trigger.value;
 
-	if (!joy_enable.value)
+	if (!joy_enable.value || XR_InputActive ()) // the runtime's controllers are the same pad
 		return;
 
 	if (!joy_active_controller)
@@ -740,7 +740,7 @@ void IN_JoyMove (usercmd_t *cmd)
 	joyaxis_t	  lookRaw, lookDeadzone, lookEased;
 	extern cvar_t sv_maxspeed;
 
-	if (!joy_enable.value)
+	if (!joy_enable.value || XR_InputActive ()) // the runtime's controllers are the same pad
 		return;
 
 	if (!joy_active_controller)

@@ -187,6 +187,8 @@ typedef struct
 	vec3_t mviewangles[2]; // during demo playback viewangles is lerped
 						   // between these
 	vec3_t viewangles;
+	float  xr_move[2];	// OpenXR mode: the left stick, forward and right, -1..1
+	float  xr_head_yaw; // OpenXR mode: where the head looks; viewangles is the aim
 
 	vec3_t mvelocity[2]; // update by server, used for lean+bob
 						 // (0 is newest)

@@ -70,6 +70,13 @@ void	 XR_GetEyeView (int eye, float body_yaw, vec3_t origin_offset, vec3_t angle
 qboolean XR_EyeProjection (float matrix[16], float near_clip);
 qboolean XR_GetHeadView (float body_yaw, vec3_t origin_offset, vec3_t angles);
 
+// Input: OpenXR's actions as the gamepad's keys and sticks; the aim apart from the view.
+qboolean XR_InputActive (void); // the runtime's controllers are in use (SDL's gamepad is then ignored)
+float	 XR_BodyYaw (void);
+void	 XR_UpdateInput (void);
+void	 XR_AdjustMove (usercmd_t *cmd);
+void	 XR_ApplyBindings (void);
+
 extern cvar_t xr_worldscale;
 
 #endif

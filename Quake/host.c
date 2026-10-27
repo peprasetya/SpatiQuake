@@ -1227,6 +1227,7 @@ static void _Host_Frame (double time)
 	}
 
 	CL_AccumulateCmd ();
+	XR_UpdateInput ();
 	M_UpdateMouse ();
 
 	// Run the server+networking (client->server->client), at a different rate from everyt
@@ -1463,6 +1464,7 @@ void Host_Init (void)
 		// johnfitz -- in case the vid mode was locked during vid_init, we can unlock it now.
 		// note: two leading newlines because the command buffer swallows one of them.
 		Cbuf_AddText ("\n\nvid_unlock\n");
+		Cbuf_AddText ("xr_applybindings\n");
 	}
 
 	if (cls.state == ca_dedicated)
