@@ -72,3 +72,51 @@ jobs:
       with:
         name: screenshots
         path: shots
+
+  # The OpenXR mode against Spatiand's own runtime (built from peprasetya/spatiand), with no
+  # compositor: the session, swapchains, frame loop, layers and actions are all checked by the
+  # runtime, and the pictures each eye and the 2D layer were drawn into are kept.
+  xr:
+    needs: [build, data]
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v6
+    - name: Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xvfb mesa-vulkan-drivers libsdl2-2.0-0 libvorbisfile3 libmpg123-0t64 \
+          libflac12t64 libopusfile0 libopenxr-loader1 libwayland-dev pkg-config
+    - uses: actions/checkout@v6
+      with:
+        repository: peprasetya/spatiand
+        path: spatiand
+    - uses: actions/cache@v4
+      with:
+        path: |
+          ~/.cargo/registry
+          spatiand/target
+        key: spatiand-openxr-${{ hashFiles('spatiand/Cargo.lock') }}
+    - name: Spatiand's OpenXR runtime
+      run: |
+        cd spatiand
+        cargo build --release -p spatiand-openxr
+        tools/install-openxr.sh
+    - uses: actions/download-artifact@v8
+      with:
+        name: spatiquake-linux
+        path: build
+    - uses: actions/download-artifact@v8
+      with:
+        name: librequake-id1
+        path: game/id1
+    - name: The eyes and the 2D, in a map
+      run: |
+        chmod +x build/vkquake
+        export XR_RUNTIME_JSON=$HOME/.local/share/spatiand-openxr/spatiand_openxr.json SPATIAND_OPENXR_STDERR=1
+        SHOT=xr_screenshot FRAMES=120 spatiquake/tools/smoke-test.sh build/vkquake game shots/xr.png -xr +map lq_e1m1
+        grep -E "OpenXR: .*failed" shots/xr.log && exit 1 || true
+    - uses: actions/upload-artifact@v7
+      if: always()
+      with:
+        name: xr-screenshots
+        path: shots
