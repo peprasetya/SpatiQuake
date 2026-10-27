@@ -1,4 +1,4 @@
-spatiand-openxr [ INFO] spatiand-openxr 0.1.0 loaded in pid 3846
+spatiand-openxr [ INFO] spatiand-openxr 0.1.0 loaded in pid 4065
 spatiand-openxr [ INFO] negotiated with the loader
 spatiand-openxr [ INFO] xrCreateInstance for "SpatiQuake" with ["XR_KHR_vulkan_enable2"]
 spatiand-openxr [DEBUG] xrGetOpenGLGraphicsRequirementsKHR was asked for and is not implemented
@@ -227,7 +227,7 @@ Console initialized.
 UDP4 Initialized
 UDPv6 Initialized
 Server using protocol 999+ (FTE-RMQ)
-Exe: 15:09:47 Oct 27 2026 
+Exe: 15:39:46 Oct 27 2026 
 SDL Video Driver: x11
 OpenXR runtime: Spatiand 0.1.0
 OpenXR: 1920 x 1080 per eye
@@ -300,4 +300,63 @@ execing default.cfg
 couldn't exec config.cfg
 couldn't exec autoexec.cfg
 execing spatiquake_smoke.cfg
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+load failed.
+Reallocating dynamic vertex buffers (512 KB)
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
+<-- server to client keepalive
 Client unconnected removed
