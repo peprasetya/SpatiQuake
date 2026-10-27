@@ -69,8 +69,9 @@ network access to some hosts (LunarG's SDK, ffmpeg.org, fteqcc.org). So:
 * **Checked**: against Spatiand's runtime with no compositor, with `-xr`: session begun, three
   swapchains, frames ended with both layers and no OpenXR call failing; the runtime logs the quad
   as 2.15 x 1.21 m, 1.5 m in front of the head. Flat without a runtime, three runs out of three.
-  **Not yet seen**: a map in the eyes (the CI job `xr` does it with LibreQuake's maps and keeps the
-  pictures as the `xr-screenshots` artifact).
+  **Seen in CI** (commit b69d40f, `ci-screenshots` branch, `xr/`): both eyes in `lq_e1m1`, the
+  weapon in view and the two eyes' parallax right; the flat engine in the same map (`run/e1m1.png`)
+  with its status bar.
 * Ray tracing: vkQuake's ray-query shadows (`r_rtshadows`) work in the OpenXR mode; the TLAS is
   built once a frame, for the left eye, and the right eye uses it.
 
@@ -82,12 +83,13 @@ network access to some hosts (LunarG's SDK, ffmpeg.org, fteqcc.org). So:
   post-process keeps alpha for it (a push constant), and blending now accumulates coverage in alpha
   (`srcAlphaBlendFactor = ONE`; nothing on the screen reads alpha).
 * **Checked**: the 2D picture of the console at the eye size (`xr_screenshot`); in CI, in
-  `lq_e1m1`, the 2D picture holds the status bar. An earlier veil over the whole layer (alpha 0.67
+  `lq_e1m1`, the 2D picture holds the status bar and the console's notify lines, and is clear
+  (alpha 0) everywhere else. An earlier veil over the whole layer (alpha 0.67
   where nothing is drawn) was the quit menu's fade, opened by the test's own `quit`.
 * Limits: the scene colour buffer is `A2B10G10R10`, so the layer's alpha has four levels;
   translucent 2D (a half-transparent console) is quantised.
 * The 2D crosshair is not drawn in the OpenXR mode; a small cross is drawn in the world where the
-  aim meets it (`R_DrawXRAimPoint`), the same size in view at any distance. Not yet seen in a map.
+  aim meets it (`R_DrawXRAimPoint`), the same size in view at any distance. Seen in CI's left eye in `lq_e1m1`, on the crate ahead.
 
 ### Step 5: input through OpenXR actions, aim apart from the view
 
