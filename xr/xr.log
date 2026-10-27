@@ -1,0 +1,333 @@
+spatiand-openxr [ INFO] spatiand-openxr 0.1.0 loaded in pid 4159
+spatiand-openxr [ INFO] negotiated with the loader
+spatiand-openxr [ INFO] xrCreateInstance for "SpatiQuake" with ["XR_KHR_vulkan_enable2"]
+spatiand-openxr [DEBUG] xrGetOpenGLGraphicsRequirementsKHR was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetVulkanInstanceExtensionsKHR was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetVulkanDeviceExtensionsKHR was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetVulkanGraphicsDeviceKHR was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetVulkanGraphicsRequirementsKHR was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetVisibilityMaskKHR was asked for and is not implemented
+spatiand-openxr [DEBUG] xrConvertTimespecTimeToTimeKHR was asked for and is not implemented
+spatiand-openxr [DEBUG] xrConvertTimeToTimespecTimeKHR was asked for and is not implemented
+spatiand-openxr [DEBUG] xrPerfSettingsSetPerformanceLevelEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrThermalGetTemperatureTrendEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSetDebugUtilsObjectNameEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateDebugUtilsMessengerEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDestroyDebugUtilsMessengerEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSubmitDebugUtilsMessageEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSessionBeginDebugUtilsLabelRegionEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSessionEndDebugUtilsLabelRegionEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSessionInsertDebugUtilsLabelEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateSpatialAnchorMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateSpatialAnchorSpaceMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDestroySpatialAnchorMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSetInputDeviceActiveEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSetInputDeviceStateBoolEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSetInputDeviceStateFloatEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSetInputDeviceStateVector2fEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSetInputDeviceLocationEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateSpatialGraphNodeSpaceMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateHandTrackerEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDestroyHandTrackerEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrLocateHandJointsEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateHandMeshSpaceMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrUpdateHandMeshMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetControllerModelKeyMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrLoadControllerModelMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetControllerModelPropertiesMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetControllerModelStateMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrEnumerateReprojectionModesMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrUpdateSwapchainFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetSwapchainStateFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrEnumerateSceneComputeFeaturesMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateSceneObserverMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDestroySceneObserverMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateSceneMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDestroySceneMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrComputeNewSceneMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetSceneComputeStateMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetSceneComponentsMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrLocateSceneComponentsMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetSceneMeshBuffersMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDeserializeSceneMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetSerializedSceneFragmentDataMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrEnumerateDisplayRefreshRatesFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetDisplayRefreshRateFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrRequestDisplayRefreshRateFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrEnumerateViveTrackerPathsHTCX was asked for and is not implemented
+spatiand-openxr [DEBUG] xrEnumerateColorSpacesFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSetColorSpaceFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetHandMeshFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateFoveationProfileFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDestroyFoveationProfileFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateTriangleMeshFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDestroyTriangleMeshFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrTriangleMeshGetVertexBufferFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrTriangleMeshGetIndexBufferFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrTriangleMeshBeginUpdateFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrTriangleMeshEndUpdateFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrTriangleMeshBeginVertexBufferUpdateFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrTriangleMeshEndVertexBufferUpdateFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreatePassthroughFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDestroyPassthroughFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrPassthroughStartFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrPassthroughPauseFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreatePassthroughLayerFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDestroyPassthroughLayerFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrPassthroughLayerPauseFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrPassthroughLayerResumeFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrPassthroughLayerSetStyleFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateGeometryInstanceFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDestroyGeometryInstanceFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGeometryInstanceSetTransformFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSetEnvironmentDepthEstimationVARJO was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSetMarkerTrackingVARJO was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSetMarkerTrackingTimeoutVARJO was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSetMarkerTrackingPredictionVARJO was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetMarkerSizeVARJO was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateMarkerSpaceVARJO was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateSpatialAnchorStoreConnectionMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDestroySpatialAnchorStoreConnectionMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrPersistSpatialAnchorMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrEnumeratePersistedSpatialAnchorNamesMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateSpatialAnchorFromPersistedNameMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrUnpersistSpatialAnchorMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrClearSpatialAnchorStoreMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetOpenGLGraphicsRequirementsKHR was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetVulkanInstanceExtensionsKHR was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetVulkanDeviceExtensionsKHR was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetVulkanGraphicsDeviceKHR was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetVulkanGraphicsRequirementsKHR was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetVisibilityMaskKHR was asked for and is not implemented
+spatiand-openxr [DEBUG] xrConvertTimespecTimeToTimeKHR was asked for and is not implemented
+spatiand-openxr [DEBUG] xrConvertTimeToTimespecTimeKHR was asked for and is not implemented
+spatiand-openxr [DEBUG] xrPerfSettingsSetPerformanceLevelEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrThermalGetTemperatureTrendEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSessionBeginDebugUtilsLabelRegionEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSessionEndDebugUtilsLabelRegionEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSessionInsertDebugUtilsLabelEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateSpatialAnchorMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateSpatialAnchorSpaceMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDestroySpatialAnchorMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSetInputDeviceActiveEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSetInputDeviceStateBoolEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSetInputDeviceStateFloatEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSetInputDeviceStateVector2fEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSetInputDeviceLocationEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateSpatialGraphNodeSpaceMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateHandTrackerEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDestroyHandTrackerEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrLocateHandJointsEXT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateHandMeshSpaceMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrUpdateHandMeshMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetControllerModelKeyMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrLoadControllerModelMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetControllerModelPropertiesMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetControllerModelStateMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrEnumerateReprojectionModesMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrUpdateSwapchainFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetSwapchainStateFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrEnumerateSceneComputeFeaturesMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateSceneObserverMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDestroySceneObserverMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateSceneMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDestroySceneMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrComputeNewSceneMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetSceneComputeStateMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetSceneComponentsMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrLocateSceneComponentsMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetSceneMeshBuffersMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDeserializeSceneMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetSerializedSceneFragmentDataMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrEnumerateDisplayRefreshRatesFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetDisplayRefreshRateFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrRequestDisplayRefreshRateFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrEnumerateViveTrackerPathsHTCX was asked for and is not implemented
+spatiand-openxr [DEBUG] xrEnumerateColorSpacesFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSetColorSpaceFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetHandMeshFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateFoveationProfileFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDestroyFoveationProfileFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateTriangleMeshFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDestroyTriangleMeshFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrTriangleMeshGetVertexBufferFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrTriangleMeshGetIndexBufferFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrTriangleMeshBeginUpdateFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrTriangleMeshEndUpdateFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrTriangleMeshBeginVertexBufferUpdateFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrTriangleMeshEndVertexBufferUpdateFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreatePassthroughFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDestroyPassthroughFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrPassthroughStartFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrPassthroughPauseFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreatePassthroughLayerFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDestroyPassthroughLayerFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrPassthroughLayerPauseFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrPassthroughLayerResumeFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrPassthroughLayerSetStyleFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateGeometryInstanceFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDestroyGeometryInstanceFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGeometryInstanceSetTransformFB was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSetEnvironmentDepthEstimationVARJO was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSetMarkerTrackingVARJO was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSetMarkerTrackingTimeoutVARJO was asked for and is not implemented
+spatiand-openxr [DEBUG] xrSetMarkerTrackingPredictionVARJO was asked for and is not implemented
+spatiand-openxr [DEBUG] xrGetMarkerSizeVARJO was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateMarkerSpaceVARJO was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateSpatialAnchorStoreConnectionMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrDestroySpatialAnchorStoreConnectionMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrPersistSpatialAnchorMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrEnumeratePersistedSpatialAnchorNamesMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrCreateSpatialAnchorFromPersistedNameMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrUnpersistSpatialAnchorMSFT was asked for and is not implemented
+spatiand-openxr [DEBUG] xrClearSpatialAnchorStoreMSFT was asked for and is not implemented
+spatiand-openxr [ WARN] running without a compositor: no Wayland compositor: Could not find wayland compositor
+spatiand-openxr [DEBUG] 14 bindings suggested for /interaction_profiles/oculus/touch_controller
+spatiand-openxr [DEBUG]   move <- /user/hand/left/input/thumbstick
+spatiand-openxr [DEBUG]   turn <- /user/hand/right/input/thumbstick
+spatiand-openxr [DEBUG]   aim <- /user/hand/right/input/aim/pose
+spatiand-openxr [DEBUG]   fire <- /user/hand/right/input/trigger/value
+spatiand-openxr [DEBUG]   aim_hold <- /user/hand/left/input/trigger/value
+spatiand-openxr [DEBUG]   jump <- /user/hand/right/input/a/click
+spatiand-openxr [DEBUG]   button_b <- /user/hand/right/input/b/click
+spatiand-openxr [DEBUG]   button_x <- /user/hand/left/input/x/click
+spatiand-openxr [DEBUG]   button_y <- /user/hand/left/input/y/click
+spatiand-openxr [DEBUG]   menu <- /user/hand/left/input/menu/click
+spatiand-openxr [DEBUG]   left_squeeze <- /user/hand/left/input/squeeze/value
+spatiand-openxr [DEBUG]   right_squeeze <- /user/hand/right/input/squeeze/value
+spatiand-openxr [DEBUG]   left_stick_click <- /user/hand/left/input/thumbstick/click
+spatiand-openxr [DEBUG]   right_stick_click <- /user/hand/right/input/thumbstick/click
+spatiand-openxr [DEBUG] 3 bindings suggested for /interaction_profiles/khr/simple_controller
+spatiand-openxr [DEBUG]   aim <- /user/hand/right/input/aim/pose
+spatiand-openxr [DEBUG]   fire <- /user/hand/right/input/select/click
+spatiand-openxr [DEBUG]   menu <- /user/hand/left/input/menu/click
+spatiand-openxr [ INFO] controllers: no gamepad found; hands will rest and buttons stay up
+spatiand-openxr [ INFO] session begun
+spatiand-openxr [ INFO] swapchain B8G8R8A8_UNORM 1920x1080 x1 layers
+spatiand-openxr [ INFO] swapchain B8G8R8A8_UNORM 1920x1080 x1 layers
+spatiand-openxr [ INFO] swapchain B8G8R8A8_UNORM 1920x1080 x1 layers
+ALSA lib confmisc.c:855:(parse_card) cannot find card '0'
+ALSA lib conf.c:5208:(_snd_config_evaluate) function snd_func_card_inum returned error: No such file or directory
+ALSA lib confmisc.c:422:(snd_func_concat) error evaluating strings
+ALSA lib conf.c:5208:(_snd_config_evaluate) function snd_func_concat returned error: No such file or directory
+ALSA lib confmisc.c:1342:(snd_func_refer) error evaluating name
+ALSA lib conf.c:5208:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
+ALSA lib conf.c:5731:(snd_config_expand) Evaluate error: No such file or directory
+ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM default
+spatiand-openxr [ INFO] the application will have /interaction_profiles/oculus/touch_controller
+Command line: /home/runner/work/SpatiQuake/SpatiQuake/build/vkquake -basedir /home/runner/work/SpatiQuake/SpatiQuake/game -window -width 960 -height 540 -xr +exec spatiquake_smoke.cfg
+Using SDL version 2.30.0
+Detected 4 CPUs.
+Initializing vkQuake 1.37.1
+Built with GCC 13.3.0
+Host_Init
+Steam library not found.
+Playing registered version.
+Console initialized.
+UDP4 Initialized
+UDPv6 Initialized
+Server using protocol 999+ (FTE-RMQ)
+Exe: 12:10:01 Oct 27 2026 
+SDL Video Driver: x11
+OpenXR runtime: Spatiand 0.1.0
+OpenXR: 1920 x 1080 per eye
+
+Vulkan Initialization
+Using Vulkan 1.1
+Instance extensions:
+ VK_KHR_surface
+ VK_KHR_xlib_surface
+ VK_KHR_get_surface_capabilities2
+ VK_KHR_get_physical_device_properties2
+
+Vendor: MESA
+Device: llvmpipe (LLVM 20.1.2, 256 bits)
+Driver: llvmpipe Mesa 25.2.8-0ubuntu0.24.04.4 (LLVM 20.1.2)
+Using FP16 shader arithmetic
+Using subgroup operations
+Using ray queries
+Device extensions:
+ VK_KHR_swapchain
+ VK_KHR_shader_float16_int8
+ VK_KHR_get_memory_requirements2
+ VK_KHR_dedicated_allocation
+ VK_EXT_subgroup_size_control
+ VK_KHR_acceleration_structure
+ VK_KHR_push_descriptor
+ VK_EXT_descriptor_indexing
+ VK_KHR_buffer_device_address
+ VK_KHR_deferred_host_operations
+ VK_KHR_shader_float_controls
+ VK_KHR_spirv_1_4
+ VK_KHR_acceleration_structure
+ VK_KHR_ray_query
+OpenXR: session made
+Using A2B10G10R10 color buffer format
+Using D32_S8 depth buffer format
+
+Creating command buffers
+Initializing staging
+Creating descriptor set layouts
+Reallocating dynamic vertex buffers (256 KB)
+Reallocating dynamic index buffers (1024 KB)
+Reallocating dynamic uniform buffers (256 KB)
+Initializing samplers
+Texture lod bias: 0.000000
+Creating pipeline layouts
+Allocating lightstyles buffer (0 KB)
+Allocating lights buffer (12 KB)
+Allocating submodel transforms buffer (768 KB)
+Allocating bmodel instances buffer (1024 KB)
+
+Sound Initialization
+OpenXR: session running
+OpenXR: swapchains 1920 x 1080, 9 images
+Creating color buffer
+4 AA Samples
+Creating depth buffer
+Creating pipelines
+Couldn't open SDL audio: ALSA: Couldn't open audio device: No such file or directory
+Failed initializing sound
+Couldn't load 'localization/loc_english.txt'
+from '/home/runner/work/SpatiQuake/SpatiQuake/game'
+Couldn't load 'localization/loc_english.txt'
+from '/home/runner/work/SpatiQuake/SpatiQuake/game'
+
+========= Quake Initialized =========
+
+execing quake.rc
+execing default.cfg
+couldn't exec config.cfg
+couldn't exec autoexec.cfg
+execing spatiquake_smoke.cfg
+3 demo(s) in loop
+
+============================== 
+check out our commands 
+Zoom90 or Zoom120 for the zoom function 
+Dev for development bindings 
+Cam for the camera system we use for the main menu demos 
+============================== 
+
+============================== 
+LibreQuake Version V0.10-beta 
+============================== 
+
+vkQuake 1.37.1 Server (11815 CRC)
+
+
+
+Rats Behind Bars
+Using protocol fte999
+Allocating surface submodel indices (75 KB)
+Allocating lightmap compute surface data (1214 KB)
+Allocating acceleration structure data (4766 KB)
+Reallocating dynamic AS scratch buffer (8192 KB)
+Allocating indirect draw data (4 KB, 229 draws)
+Allocating indirect IBs (504 KB)
+Allocating visibility buffers (5 KB)
+Reallocating dynamic storage buffers (2 KB)
+Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-121621-00.png
+Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-121624-00.png
+Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-121625-00.png
+Client player removed
