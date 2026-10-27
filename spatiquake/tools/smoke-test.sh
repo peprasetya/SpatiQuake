@@ -34,7 +34,11 @@ CFG="$BASEDIR/id1/spatiquake_smoke.cfg"
 {
     [[ -n "${MAP:-}" ]] && printf 'map %s\n' "$MAP"
     for ((i = 0; i < FRAMES; i++)); do printf 'wait\n'; done
-    printf '%s\nwait\nwait\nwait\nwait\nquit\n' "$SHOT"
+    # Then frames enough for it to be written: a frame that does not get an image from the window's
+    # swap chain (FIFO under Xvfb) does not take the picture, and the engine moves on.
+    printf '%s\n' "$SHOT"
+    for ((i = 0; i < 30; i++)); do printf 'wait\n'; done
+    printf 'quit\n'
 } > "$CFG"
 STAMP="$BASEDIR/id1/.spatiquake_smoke_start"
 touch "$STAMP"
