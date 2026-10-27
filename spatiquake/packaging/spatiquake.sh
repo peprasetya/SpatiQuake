@@ -1,17 +1,25 @@
 #!/bin/sh
-# Start SpatiQuake from its release folder: the engine (an AppImage) with the LibreQuake data
-# beside it. Arguments go to the engine.
+# Start SpatiQuake from its folder (as Spatiand installs it, or as unpacked): the engine in bin/,
+# the libraries it was built with in lib/, LibreQuake's data in id1/. Arguments go to the engine.
 #
-# The OpenXR mode is on when an OpenXR runtime is found -- inside a Spatiand session the session
-# names Spatiand's (XR_RUNTIME_JSON), and spatiand-host's catalogue entry does the same -- and the
-# engine is an ordinary flat vkQuake otherwise. -xr insists on the OpenXR mode, -noxr refuses it.
+# The OpenXR mode is on when an OpenXR runtime is found: inside a Spatiand session Spatiand names
+# its own (XR_RUNTIME_JSON), and spatiand-host's catalogue entry does the same. Elsewhere the
+# engine is an ordinary flat vkQuake. -xr insists on the OpenXR mode, -noxr refuses it.
 here="$(cd "$(dirname "$0")" && pwd)"
-engine="$(ls "$here"/vkQuake-*.AppImage 2>/dev/null | head -1)"
-[ -n "$engine" ] || { echo "no vkQuake-*.AppImage beside $0" >&2; exit 1; }
-# The user's saves and configs go in the user's own folder, not the release's.
-data="${XDG_DATA_HOME:-$HOME/.local/share}/spatiquake"
-mkdir -p "$data"
-[ -e "$data/id1" ] || ln -s "$here/id1" "$data/id1"
-# An AppImage needs FUSE; without it (some containers), it can unpack and run instead.
-command -v fusermount >/dev/null 2>&1 || command -v fusermount3 >/dev/null 2>&1 || export APPIMAGE_EXTRACT_AND_RUN=1
-exec "$engine" -basedir "$data" "$@"
+
+# Saves, configs and screenshots go in the user's own folder, not the application's, which an
+# update replaces: there the game folder holds links to the data and whatever the game writes.
+user="${XDG_DATA_HOME:-$HOME/.local/share}/spatiquake"
+mkdir -p "$user/id1"
+for f in "$here"/id1/*; do
+    name="$(basename "$f")"
+    case "$name" in *.cfg | *.sav | *.png) continue ;; esac # what the game writes is the user's own
+    [ -e "$user/id1/$name" ] && [ ! -L "$user/id1/$name" ] && continue # the user's own file wins
+    ln -sfn "$f" "$user/id1/$name"
+done
+for link in "$user"/id1/*; do # links to data an update no longer has
+    [ -L "$link" ] && [ ! -e "$link" ] && rm -f "$link"
+done
+
+export LD_LIBRARY_PATH="$here/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+exec "$here/bin/vkquake" -basedir "$user" "$@"

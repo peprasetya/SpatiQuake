@@ -1,0 +1,8 @@
+# SpatiQuake as an application installed into Spatiand (spatiand-platform's `installed`).
+id = "spatiquake"
+name = "SpatiQuake"
+exec = "spatiquake.sh"
+icon = "spatiquake.png"
+categories = ["Game"]
+kind = "vr"
+version = "@VERSION@"

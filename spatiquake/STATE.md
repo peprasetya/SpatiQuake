@@ -96,16 +96,32 @@ network access to some hosts (LunarG's SDK, ffmpeg.org, fteqcc.org). So:
 * **Checked**: the runtime accepted all 14 Touch and 3 simple-controller bindings and gave the
   application the Touch profile. **Not checked**: anything with a pad in hand.
 
-### Step 7: packaging
+### Step 7: packaging, as a Spatiand application
 
-* `spatiquake/tools/make-release.sh APPIMAGE ID1 OUT`: `SpatiQuake-<version>/` with the AppImage
-  (which now carries `libopenxr_loader.so.1`), LibreQuake's `id1`, `spatiquake.sh` (the launcher;
-  saves and configs in `~/.local/share/spatiquake`), `add-to-host.sh` and `spatiand-host-app.toml`
-  (a `kind = "vr"` entry with `XR_RUNTIME_JSON`), README and licences, and a tar.gz of it.
-  CI's `release` job builds it; a `v*` tag attaches it to the GitHub release.
-* **Checked**: the release assembled from the dev build, the launcher started the engine flat from
-  it, `add-to-host.sh` wrote the entry, and the entry parses with spatiand-stream's own `Catalog`
-  type (kind Vr, eyes side_by_side).
+The owner wants SpatiQuake to be a Spatiand application -- listed behind the Spatiand bubble, and
+installed by dragging it into the room -- not an AppImage.
+
+* **Spatiand side** (peprasetya/spatiand, branch `installed-apps`, PR #1, for the owner to review):
+  applications installed into `~/.local/share/spatiand/apps/<id>/` with a `spatiand-app.toml`,
+  listed after Spatiand's own; a `.spatiapp` (that folder as a gzipped tar) dropped onto the room
+  is offered on the notice card and installed when the card is pressed; `spatiand --install FILE`
+  does the same from a terminal. See that repository's `docs/spatiand-apps.md`.
+* **SpatiQuake side**: `spatiquake/tools/make-release.sh ENGINE ID1 OUT` makes
+  `SpatiQuake-<version>.spatiapp`: one folder `spatiquake/` with `spatiand-app.toml` (`kind = "vr"`,
+  icon, version), the engine in `bin/` and the libraries it was built with in `lib/` (from
+  linuxdeploy's AppDir, made by `spatiquake/tools/build-appdir-in-docker.sh` in upstream's
+  Ubuntu 22.04 build image, with the OpenXR loader), LibreQuake's `id1/`, `spatiquake.sh` (the
+  launcher: saves and configs in `~/.local/share/spatiquake`, where the game folder holds links to
+  the data, so an update never touches them), README and licences, and `add-to-host.sh` with
+  `spatiand-host-app.toml` for a machine that streams it with spatiand-host. CI's `release` job
+  builds it; a `v*` tag attaches it to the GitHub release.
+* **Checked**: a package made from the dev build, dropped (a GTK drag source, in Spatiand's
+  snapshot backend built from that branch) onto the room: Spatiand offered "Install SpatiQuake
+  test?", the press installed it, and the launcher showed SpatiQuake behind the Spatiand bubble with
+  its icon. The installed copy started (flat, no runtime) with its saves in the user's folder.
+  `spatiand --install` on the same package; the host entry parses with spatiand-stream's own
+  `Catalog`.
+* **Not checked**: the CI-built package (the AppDir path) on SteamOS.
 
 ## Not done
 

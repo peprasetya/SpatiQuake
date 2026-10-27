@@ -1,7 +1,6 @@
 # SpatiQuake in spatiand-host's catalogue (~/.config/spatiand-host/apps.toml), streamed to the
-# glasses as the room. Spatiand's OpenXR runtime must be installed on the host
-# (tools/install-openxr.sh in the spatiand repository). Replace RELEASE with the folder the
-# release was unpacked into and HOME with the host user's home.
+# glasses as the room. add-to-host.sh writes this with the real paths. Spatiand's OpenXR runtime
+# must be installed on the host (tools/install-openxr.sh in the spatiand repository).
 [[app]]
 id = "spatiquake"
 name = "SpatiQuake"
