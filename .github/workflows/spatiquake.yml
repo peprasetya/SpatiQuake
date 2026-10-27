@@ -128,6 +128,20 @@ jobs:
         export XR_RUNTIME_JSON=$HOME/.local/share/spatiand-openxr/spatiand_openxr.json SPATIAND_OPENXR_STDERR=1
         MAP=lq_e1m1 SHOT=xr_screenshot FRAMES=120 spatiquake/tools/smoke-test.sh build/vkquake game shots/xr.png -xr
         grep -E "OpenXR: .*failed" shots/xr.log && exit 1 || true
+    # Diagnostic: the 2D layer's alpha where nothing is drawn (should be 0), with each suspect off.
+    - name: The 2D layer's empty alpha, setting by setting
+      continue-on-error: true
+      run: |
+        export XR_RUNTIME_JSON=$HOME/.local/share/spatiand-openxr/spatiand_openxr.json
+        for setting in "" "vid_fsaa 0" "r_oit 0" "r_ssao 0" "scr_sbaralpha 1" "gl_polyblend 0" "r_oit 0;vid_fsaa 0;r_ssao 0"; do
+          name="$(echo "${setting:-default}" | tr ' ;' '_-')"
+          args=()
+          IFS=';' read -ra parts <<< "$setting"
+          for part in "${parts[@]}"; do read -ra kv <<< "$part"; args+=("+${kv[0]}" "${kv[1]}"); done
+          MAP=lq_e1m1 SHOT=xr_screenshot FRAMES=60 spatiquake/tools/smoke-test.sh build/vkquake game "shots/alpha/$name.png" -xr "${args[@]}" >/dev/null 2>&1 || true
+          a="$(convert "shots/alpha/$name-2d.png" -format '%[fx:p{960,300}.a]' info: 2>/dev/null || echo none)"
+          echo "$name: alpha at the centre = $a" | tee -a shots/alpha/summary.txt
+        done
     - uses: actions/upload-artifact@v7
       if: always()
       with:
