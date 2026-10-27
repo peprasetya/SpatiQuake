@@ -1627,7 +1627,8 @@ static void SCR_DrawGUI (void *unused)
 	}
 	else
 	{
-		SCR_DrawCrosshair (cbx); // johnfitz
+		if (!XR_Enabled ())			 // the OpenXR mode's 2D is fixed to the head, and the aim is not
+			SCR_DrawCrosshair (cbx); // johnfitz
 		SCR_DrawNet (cbx);
 		SCR_DrawTurtle (cbx);
 		SCR_DrawPause (cbx);

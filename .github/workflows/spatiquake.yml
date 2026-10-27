@@ -6,6 +6,12 @@ name: SpatiQuake
 
 on: [push, pull_request, workflow_dispatch]
 
+# One at a time per branch: a newer push waits for the one running (which may be building and
+# caching LibreQuake's data) rather than building the same data beside it.
+concurrency:
+  group: spatiquake-${{ github.ref }}
+  cancel-in-progress: false
+
 env:
   VULKAN_SDK_VER: 1.4.341.1
 
