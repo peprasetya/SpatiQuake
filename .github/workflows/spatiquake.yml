@@ -1,0 +1,74 @@
+name: SpatiQuake
+
+# vkQuake built natively on Linux with meson, then started with LibreQuake's data on Mesa's
+# software Vulkan (lavapipe) under Xvfb: once to the menu and once into a map, each ending in a
+# screenshot that is kept as an artifact. (Upstream's AppImage build stays in build-linux.yml.)
+
+on: [push, pull_request, workflow_dispatch]
+
+env:
+  VULKAN_SDK_VER: 1.4.341.1
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v6
+    - name: Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y meson ninja-build libsdl2-dev libvorbis-dev libmpg123-dev libflac-dev \
+          libopusfile-dev libopenxr-dev
+    # The parts of the Vulkan SDK the build uses: newer headers and a spirv-opt with
+    # --canonicalize-ids (Ubuntu's are too old), as upstream's AppImage image does.
+    - name: Vulkan SDK
+      run: |
+        mkdir -p "$HOME/vulkan-sdk"
+        curl -sSfL "https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/linux/vulkansdk-linux-x86_64-$VULKAN_SDK_VER.tar.xz" \
+          | tar -xJ -C "$HOME/vulkan-sdk" --strip-components=1 --wildcards \
+            "$VULKAN_SDK_VER/x86_64/bin/glslang*" "$VULKAN_SDK_VER/x86_64/bin/spirv-opt" \
+            "$VULKAN_SDK_VER/x86_64/include" "$VULKAN_SDK_VER/x86_64/lib/libvulkan.so*"
+        sdk="$HOME/vulkan-sdk/x86_64"
+        mkdir -p "$sdk/lib/pkgconfig"
+        printf 'Name: vulkan\nDescription: Vulkan SDK\nVersion: %s\nLibs: -L%s/lib -lvulkan\nCflags: -I%s/include\n' \
+          "${VULKAN_SDK_VER%.*}" "$sdk" "$sdk" > "$sdk/lib/pkgconfig/vulkan.pc"
+        echo "VULKAN_SDK=$sdk" >> "$GITHUB_ENV"
+        echo "$sdk/bin" >> "$GITHUB_PATH"
+        echo "PKG_CONFIG_PATH=$sdk/lib/pkgconfig" >> "$GITHUB_ENV"
+    - name: Build
+      run: meson setup build && ninja -C build
+    - uses: actions/upload-artifact@v7
+      with:
+        name: spatiquake-linux
+        path: build/vkquake
+
+  data:
+    uses: ./.github/workflows/librequake.yml
+
+  run:
+    needs: [build, data]
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v6
+    - name: Dependencies
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y xvfb mesa-vulkan-drivers libsdl2-2.0-0 libvorbisfile3 libmpg123-0t64 \
+          libflac12t64 libopusfile0 libopenxr-loader1
+    - uses: actions/download-artifact@v8
+      with:
+        name: spatiquake-linux
+        path: build
+    - uses: actions/download-artifact@v8
+      with:
+        name: librequake-id1
+        path: game/id1
+    - name: To the menu
+      run: chmod +x build/vkquake && spatiquake/tools/smoke-test.sh build/vkquake game shots/menu.png
+    - name: Into a map
+      run: spatiquake/tools/smoke-test.sh build/vkquake game shots/e1m1.png +map lq_e1m1
+    - uses: actions/upload-artifact@v7
+      if: always()
+      with:
+        name: screenshots
+        path: shots

@@ -54,3 +54,17 @@ where the wearer has it, works the same.
 5. Running on the Deck in a Spatiand session (the headless Spatiand with `SPATIAND_HMD=null` can test
    it without glasses, as spatiand's OpenXR conformance runs do), and through `spatiand-host`.
 6. Packaging: a Deck release with the paks, and a catalogue entry for hosts.
+
+## Aim apart from the view (the owner's request)
+
+The camera follows the head; the weapon need not. As with a rifle in the hand, the wearer can keep the
+aim on one point and look somewhere else for a moment. In the OpenXR mode:
+
+* The view is the body's yaw (turned by the right stick) plus the head's pose.
+* The aim is the right hand's *aim* pose where the runtime gives one that is in use (the gyro's
+  *VR right hand*, or the pointer); otherwise the head.
+* **Aim hold**: while a button is held, the aim stays fixed in the world at the direction it had when the
+  button went down, and the head looks around freely; let go and it follows again.
+
+This is all standard OpenXR (an action pose and a boolean). Something Spatiand-specific is only for what
+OpenXR cannot say, and nothing here needs it.

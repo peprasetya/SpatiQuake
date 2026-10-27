@@ -1,0 +1,132 @@
+name: LibreQuake data
+
+# LibreQuake's game data, built from its source with its own build.py by
+# spatiquake/tools/build-librequake.sh: id1/pak0.pak, pak1.pak and the loose files. Built
+# once per LibreQuake commit and kept in the cache; the maps are compiled one directory per
+# job, as LibreQuake's own CI does. Other workflows call this one and download the
+# `librequake-id1` artifact.
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  push:
+    branches: [master]
+    paths:
+      - 'spatiquake/tools/build-librequake.sh'
+      - '.github/workflows/librequake.yml'
+
+env:
+  PYTHONUNBUFFERED: 1
+
+jobs:
+  key:
+    runs-on: ubuntu-24.04
+    outputs:
+      key: ${{ steps.key.outputs.key }}
+      hit: ${{ steps.cache.outputs.cache-hit }}
+    steps:
+    - uses: actions/checkout@v6
+    - id: key
+      run: echo "key=librequake-$(sha256sum spatiquake/tools/build-librequake.sh | cut -c1-16)" >> "$GITHUB_OUTPUT"
+    - id: cache
+      uses: actions/cache/restore@v4
+      with:
+        path: build/librequake/id1
+        key: ${{ steps.key.outputs.key }}
+        lookup-only: true
+
+  wads:
+    needs: key
+    if: needs.key.outputs.hit != 'true'
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v6
+    - run: sudo apt-get update && sudo apt-get install -y cmake libz-dev libpng-dev unzip
+    - run: LQ_STAGE=wads spatiquake/tools/build-librequake.sh
+    - uses: actions/upload-artifact@v7
+      with:
+        name: lq-wads
+        path: build/librequake/src/texture-wads/*.wad
+        if-no-files-found: error
+
+  progs:
+    needs: key
+    if: needs.key.outputs.hit != 'true'
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v6
+    - run: sudo apt-get update && sudo apt-get install -y cmake libz-dev libpng-dev unzip
+    - run: LQ_STAGE=progs spatiquake/tools/build-librequake.sh
+    - uses: actions/upload-artifact@v7
+      with:
+        name: lq-progs
+        path: build/librequake/src/lq1/*progs.dat
+        if-no-files-found: error
+
+  maps:
+    needs: [key, wads]
+    if: needs.key.outputs.hit != 'true'
+    runs-on: ubuntu-24.04
+    strategy:
+      matrix:
+        dir: [brushmodels, dm, e0, e1, e2, e3, e4, misc]
+    steps:
+    - uses: actions/checkout@v6
+    - run: sudo apt-get update && sudo apt-get install -y cmake libz-dev libpng-dev unzip
+    # The checkout and the tools first, then the wads into it.
+    - run: LQ_STAGE=prepare spatiquake/tools/build-librequake.sh
+    - uses: actions/download-artifact@v8
+      with:
+        name: lq-wads
+        path: build/librequake/src/texture-wads
+    - run: LQ_STAGE=maps LQ_MAPS=${{ matrix.dir }} spatiquake/tools/build-librequake.sh
+    - uses: actions/upload-artifact@v7
+      with:
+        name: lq-maps-${{ matrix.dir }}
+        path: |
+          build/librequake/src/lq1/maps/*.bsp
+          build/librequake/src/lq1/maps/*.lit
+        if-no-files-found: error
+
+  assemble:
+    needs: [key, wads, progs, maps]
+    if: needs.key.outputs.hit != 'true'
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/checkout@v6
+    - run: sudo apt-get update && sudo apt-get install -y cmake libz-dev libpng-dev unzip
+    - run: LQ_STAGE=prepare spatiquake/tools/build-librequake.sh
+    - uses: actions/download-artifact@v8
+      with:
+        name: lq-wads
+        path: build/librequake/src/texture-wads
+    - uses: actions/download-artifact@v8
+      with:
+        name: lq-progs
+        path: build/librequake/src/lq1
+    - uses: actions/download-artifact@v8
+      with:
+        pattern: lq-maps-*
+        path: build/librequake/src/lq1/maps
+        merge-multiple: true
+    - run: LQ_STAGE=assemble spatiquake/tools/build-librequake.sh
+    - uses: actions/cache/save@v4
+      with:
+        path: build/librequake/id1
+        key: ${{ needs.key.outputs.key }}
+
+  publish:
+    needs: [key, assemble]
+    if: always() && needs.key.result == 'success' && (needs.assemble.result == 'success' || needs.assemble.result == 'skipped')
+    runs-on: ubuntu-24.04
+    steps:
+    - uses: actions/cache/restore@v4
+      with:
+        path: build/librequake/id1
+        key: ${{ needs.key.outputs.key }}
+        fail-on-cache-miss: true
+    - uses: actions/upload-artifact@v7
+      with:
+        name: librequake-id1
+        path: build/librequake/id1
+        if-no-files-found: error
