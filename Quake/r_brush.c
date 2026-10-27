@@ -2865,6 +2865,10 @@ void R_BuildTopLevelAccelerationStructure (void *unused)
 {
 	if (bmodel_tlas == VK_NULL_HANDLE)
 		return;
+	// The OpenXR mode's right eye is the same instant as the left: same entities, same transforms.
+	// The left eye's build is used (it was submitted first, on the same queue).
+	if (XR_DrawingEye () == XR_TARGET_RIGHT)
+		return;
 
 	cb_context_t *cbx = &vulkan_globals.primary_cb_contexts[PCBX_BUILD_ACCELERATION_STRUCTURES];
 
