@@ -1,132 +1,0 @@
-ALSA lib confmisc.c:855:(parse_card) cannot find card '0'
-ALSA lib conf.c:5208:(_snd_config_evaluate) function snd_func_card_inum returned error: No such file or directory
-ALSA lib confmisc.c:422:(snd_func_concat) error evaluating strings
-ALSA lib conf.c:5208:(_snd_config_evaluate) function snd_func_concat returned error: No such file or directory
-ALSA lib confmisc.c:1342:(snd_func_refer) error evaluating name
-ALSA lib conf.c:5208:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
-ALSA lib conf.c:5731:(snd_config_expand) Evaluate error: No such file or directory
-ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM default
-Command line: /home/runner/work/SpatiQuake/SpatiQuake/build/vkquake -basedir /home/runner/work/SpatiQuake/SpatiQuake/game -window -width 960 -height 540 -xr +scr_sbaralpha 1 +exec spatiquake_smoke.cfg
-Using SDL version 2.30.0
-Detected 4 CPUs.
-Initializing vkQuake 1.37.1
-Built with GCC 13.3.0
-Host_Init
-Steam library not found.
-Playing registered version.
-Console initialized.
-UDP4 Initialized
-UDPv6 Initialized
-Server using protocol 999+ (FTE-RMQ)
-Exe: 14:05:37 Oct 27 2026 
-SDL Video Driver: x11
-OpenXR runtime: Spatiand 0.1.0
-OpenXR: 1920 x 1080 per eye
-
-Vulkan Initialization
-Using Vulkan 1.1
-Instance extensions:
- VK_KHR_surface
- VK_KHR_xlib_surface
- VK_KHR_get_surface_capabilities2
- VK_KHR_get_physical_device_properties2
-
-Vendor: MESA
-Device: llvmpipe (LLVM 20.1.2, 256 bits)
-Driver: llvmpipe Mesa 25.2.8-0ubuntu0.24.04.4 (LLVM 20.1.2)
-Using FP16 shader arithmetic
-Using subgroup operations
-Using ray queries
-Device extensions:
- VK_KHR_swapchain
- VK_KHR_shader_float16_int8
- VK_KHR_get_memory_requirements2
- VK_KHR_dedicated_allocation
- VK_EXT_subgroup_size_control
- VK_KHR_acceleration_structure
- VK_KHR_push_descriptor
- VK_EXT_descriptor_indexing
- VK_KHR_buffer_device_address
- VK_KHR_deferred_host_operations
- VK_KHR_shader_float_controls
- VK_KHR_spirv_1_4
- VK_KHR_acceleration_structure
- VK_KHR_ray_query
-OpenXR: session made
-Using A2B10G10R10 color buffer format
-Using D32_S8 depth buffer format
-
-Creating command buffers
-Initializing staging
-Creating descriptor set layouts
-Reallocating dynamic vertex buffers (256 KB)
-Reallocating dynamic index buffers (1024 KB)
-Reallocating dynamic uniform buffers (256 KB)
-Initializing samplers
-Texture lod bias: 0.000000
-Creating pipeline layouts
-Allocating lightstyles buffer (0 KB)
-Allocating lights buffer (12 KB)
-Allocating submodel transforms buffer (768 KB)
-Allocating bmodel instances buffer (1024 KB)
-
-Sound Initialization
-OpenXR: session running
-OpenXR: swapchains 1920 x 1080, 9 images
-Creating color buffer
-AA disabled
-Creating depth buffer
-Creating pipelines
-Couldn't open SDL audio: ALSA: Couldn't open audio device: No such file or directory
-Failed initializing sound
-Couldn't load 'localization/loc_english.txt'
-from '/home/runner/work/SpatiQuake/SpatiQuake/game'
-Couldn't load 'localization/loc_english.txt'
-from '/home/runner/work/SpatiQuake/SpatiQuake/game'
-
-========= Quake Initialized =========
-
-execing quake.rc
-execing default.cfg
-execing config.cfg
-couldn't exec autoexec.cfg
-OpenXR: swapchains 1920 x 1080, 9 images
-Creating color buffer
-AA disabled
-Creating depth buffer
-Creating pipelines
-Initializing samplers
-Texture lod bias: 0.000000
-execing spatiquake_smoke.cfg
-3 demo(s) in loop
-
-============================== 
-check out our commands 
-Zoom90 or Zoom120 for the zoom function 
-Dev for development bindings 
-Cam for the camera system we use for the main menu demos 
-============================== 
-
-============================== 
-LibreQuake Version V0.10-beta 
-============================== 
-
-vkQuake 1.37.1 Server (11815 CRC)
-
-
-
-Rats Behind Bars
-Using protocol fte999
-Allocating surface submodel indices (75 KB)
-Allocating lightmap compute surface data (1214 KB)
-Allocating acceleration structure data (4766 KB)
-Reallocating dynamic AS scratch buffer (8192 KB)
-Allocating indirect draw data (4 KB, 229 draws)
-Allocating indirect IBs (504 KB)
-Allocating visibility buffers (5 KB)
-player entered the game
-Reallocating dynamic storage buffers (2 KB)
-Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-140807-00.png
-Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-140808-00.png
-Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-140808-01.png
-Client player removed
