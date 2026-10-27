@@ -1110,7 +1110,7 @@ void XR_UpdateInput (void)
 	VectorCopy (xr_holding ? xr_held_angles : aim_angles, xr_aim_angles);
 
 	cl.xr_head_yaw = head_angles[YAW];
-	if (key_dest == key_game && !CL_AngleLocked ())
+	if (key_dest == key_game && !CL_AngleLocked () && !cls.demoplayback) // a demo's angles are the demo's
 		VectorCopy (xr_aim_angles, cl.viewangles);
 	xr_last_aim_yaw = cl.viewangles[YAW];
 }

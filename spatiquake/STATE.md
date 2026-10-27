@@ -25,8 +25,9 @@ network access to some hosts (LunarG's SDK, ffmpeg.org, fteqcc.org). So:
 
 * `.github/workflows/spatiquake.yml`: native meson build on ubuntu-24.04 with the LunarG SDK, then
   the engine on lavapipe under Xvfb with LibreQuake's data, to the menu and into `lq_e1m1`.
-  Upstream's Windows and macOS workflows are removed (SpatiQuake is Linux only); upstream's AppImage
-  build (`build-linux.yml`) and formatting check stay.
+  Upstream's Windows workflows are removed (SpatiQuake targets Linux); the macOS one is kept for a
+  later Mac build but runs only when started by hand. Upstream's AppImage build (`build-linux.yml`)
+  and formatting check stay.
 * **Checked** in the container: LibreQuake's main menu on lavapipe, three runs out of three.
 
 ### Step 2: LibreQuake's paks
