@@ -1,37 +1,129 @@
 # SpatiQuake: state
 
-What is done, how it was checked, and what is not done. Newest first within each section.
+What is done, how it was checked, and what is not done.
+
+## How things are checked here
+
+The development container has no GPU (Mesa's lavapipe draws, under Xvfb), no `/dev/dri`, and no
+network access to some hosts (LunarG's SDK, ffmpeg.org, fteqcc.org). So:
+
+* **The engine** is built with meson (`-Dbuildtype=debugoptimized`, which skips `spirv-opt`; Vulkan
+  headers 1.4.341 from Khronos' `Vulkan-Headers`). CI builds the release way with the LunarG SDK.
+* **Spatiand's OpenXR runtime** (`crates/spatiand-openxr` of peprasetya/spatiand, cloned read-only)
+  is built and installed with its own `tools/install-openxr.sh`. With no compositor it still runs a
+  session (its log: "running without a compositor") and validates every call: swapchain order, frame
+  loop order and times, layers, actions, bindings.
+* **What each eye and the 2D layer were drawn into** is saved by `xr_screenshot` (three PNGs of one
+  frame, the 2D with its alpha): that is exactly the picture the runtime copies out.
+* **The composited room** (headless Spatiand) needs a GPU: see "Not done".
+* `spatiquake/tools/smoke-test.sh` runs any of this to a screenshot; CI runs it with LibreQuake's
+  real data, flat and in the OpenXR mode.
 
 ## Done
 
 ### Step 1: vkQuake builds and runs on Linux, in CI
 
-* `meson setup build && ninja -C build` builds vkQuake as it is (SDL2 here; SDL3 when present).
-  vkQuake wants Vulkan headers >= 1.4.341 and, for a release build, a `spirv-opt` with
-  `--canonicalize-ids`; Ubuntu 24.04 has neither. CI (`.github/workflows/spatiquake.yml`) takes them
-  from the LunarG SDK, as upstream's AppImage image does. In the development container the SDK host is
-  not reachable, so there the headers are Khronos' `Vulkan-Headers` v1.4.341 with a `vulkan.pc` of our
-  own, and the build is `-Dbuildtype=debugoptimized` (which skips spirv-opt).
-* `spatiquake/tools/smoke-test.sh VKQUAKE BASEDIR OUT.png [ARGS]` starts the engine (an Xvfb of its own
-  if there is no display; Mesa's lavapipe if there is no GPU), draws 60 frames, takes vkQuake's own
-  screenshot and quits; it fails without a screenshot or on a `QUAKE ERROR`/`Host_Error`.
-* **Checked** in the container: the engine reached LibreQuake's main menu (its own menu art) on
-  lavapipe under Xvfb, three runs out of three.
+* `.github/workflows/spatiquake.yml`: native meson build on ubuntu-24.04 with the LunarG SDK, then
+  the engine on lavapipe under Xvfb with LibreQuake's data, to the menu and into `lq_e1m1`.
+  Upstream's Windows and macOS workflows are removed (SpatiQuake is Linux only); upstream's AppImage
+  build (`build-linux.yml`) and formatting check stay.
+* **Checked** in the container: LibreQuake's main menu on lavapipe, three runs out of three.
 
 ### Step 2: LibreQuake's paks
 
-* `spatiquake/tools/build-librequake.sh [OUT]` fetches LibreQuake at a pinned commit, the tools its own
-  CI uses (fteqcc, ericw-tools 2.0.0-alpha9, qpakman), and runs its `build.py`: wads, progs, maps,
-  then its `full` release, copied to `OUT` (`build/librequake/id1`). `LQ_STAGE` runs one stage, so CI
-  (`.github/workflows/librequake.yml`) compiles the map directories on separate machines as
-  LibreQuake's own CI does, and caches the result per script version (the script pins the commit).
-* `spatiquake/tools/mkpak.py` writes a .pak from a directory; it is for test data only.
-* **Not checked in the container**: building third-party tools there was refused by the session's
-  permission policy, so the local tests use LibreQuake's loose 2D files (gfx.wad, gfx/, configs)
-  packed into a test `pak0.pak`. That reaches the menu and console, not a map. The full data is built
-  and run into a map in CI.
+* `spatiquake/tools/build-librequake.sh` (pinned LibreQuake commit, its own `build.py` and the tools
+  its CI uses); `.github/workflows/librequake.yml` builds the map directories on separate runners
+  and caches the result per script version. Not committed anywhere.
+* **Checked in CI** (the first run built wads, progs and seven of eight map directories in about
+  12 minutes; e2 took longest). Building the third-party tools in the container was refused by the
+  session's permission policy, so local tests use LibreQuake's loose 2D files packed into a test
+  pak (`spatiquake/tools/mkpak.py`): menus and console, no maps.
+
+### Step 3: the OpenXR mode (`Quake/xr.c`, `Quake/xr.h`)
+
+* On when the OpenXR loader finds a runtime with `XR_KHR_vulkan_enable2` and a head-mounted system;
+  `-xr` insists, `-noxr` refuses. The loader is opened at run time, so a machine without it is flat.
+  Built without OpenXR headers (`-Duse_openxr=disabled`) the engine is the flat vkQuake.
+* The Vulkan instance and device are made through the runtime (`xrCreateVulkanInstanceKHR`,
+  `xrGetVulkanGraphicsDevice2KHR`, `xrCreateVulkanDeviceKHR`), the session with the engine's queue;
+  the queue mutex is held for every OpenXR call that may submit.
+* Three OpenXR swapchains (left, right, 2D; `B8G8R8A8_UNORM`) stand in for the window's swap
+  chain: vkQuake's last pass draws into the current one, which is then turned back to
+  `COLOR_ATTACHMENT_OPTIMAL`; nothing is presented to the window. `vid.width/height` are the eye
+  size the runtime recommends (1920x1080 from Spatiand), not the window's.
+* Each frame: `xrWaitFrame`, `xrBeginFrame`, the eyes located in `LOCAL` space; the world drawn
+  once per eye from the eye's pose turned by the body's yaw, `xr_worldscale` (32) Quake units a
+  metre, with the eye's own asymmetric field (vkQuake's reversed infinite projection); then the 2D;
+  `xrEndFrame` with a projection layer and a quad layer.
+* **Checked**: against Spatiand's runtime with no compositor, with `-xr`: session begun, three
+  swapchains, frames ended with both layers and no OpenXR call failing; the runtime logs the quad
+  as 2.15 x 1.21 m, 1.5 m in front of the head. Flat without a runtime, three runs out of three.
+  **Not yet seen**: a map in the eyes (the CI job `xr` does it with LibreQuake's maps and keeps the
+  pictures as the `xr-screenshots` artifact).
+* Ray tracing: vkQuake's ray-query shadows (`r_rtshadows`) work in the OpenXR mode; the TLAS is
+  built once a frame, for the left eye, and the right eye uses it.
+
+### Step 4: the 2D on a quad layer
+
+* The 2D (menus, console, status bar, centre prints) is drawn alone on a clear picture into the third
+  swapchain and shown as a quad in front of the head (`VIEW` space), `xr_hud_distance` (1.5 m) away
+  and `xr_hud_size` (0.85) of the eyes' field across, so all of it is in view on the glasses. The
+  post-process keeps alpha for it (a push constant), and blending now accumulates coverage in alpha
+  (`srcAlphaBlendFactor = ONE`; nothing on the screen reads alpha).
+* **Checked**: the 2D picture of the console at the eye size (`xr_screenshot`).
+* Limits: the scene colour buffer is `A2B10G10R10`, so the layer's alpha has four levels;
+  translucent 2D (a half-transparent console) is quantised.
+* The 2D crosshair is not drawn in the OpenXR mode; a small cross is drawn in the world where the
+  aim meets it (`R_DrawXRAimPoint`), the same size in view at any distance. Not yet seen in a map.
+
+### Step 5: input through OpenXR actions, aim apart from the view
+
+* Actions bound on `/interaction_profiles/oculus/touch_controller` (how Spatiand presents the
+  gamepad) and `khr/simple_controller`: move (left stick), turn (right stick), aim (right hand's
+  aim pose), fire (right trigger), aim hold (left trigger), A, B, X, Y, menu, grips, stick clicks.
+  Buttons arrive as vkQuake's gamepad keys, so binds and menus work as on a pad; in a menu the left
+  stick is the arrows. `xr_bindings 1` (default) puts the OpenXR mode's binds on at start.
+* The view is the head turned by the body's yaw. The right stick turns the body (`xr_snapturn`
+  degrees, or smooth at `xr_turnspeed` when 0); so does the engine's own turning (mouse, keys).
+* The aim (what the server and the weapon use) is the right hand's aim pose (`xr_aim 1`: Spatiand
+  points it with the gyro or the pointer, and otherwise where the head points) or the head
+  (`xr_aim 0`). **`+aimhold`** (left trigger) keeps it where it is in the world while the head looks
+  round: the owner's "aim at one point and look elsewhere". The left stick moves relative to where
+  the head looks, turned into the aim's frame for the server. The weapon is held at the head,
+  pointing along the aim.
+* SDL's own gamepad is ignored while the runtime's controllers are in use (they are the same pad).
+* **Checked**: the runtime accepted all 14 Touch and 3 simple-controller bindings and gave the
+  application the Touch profile. **Not checked**: anything with a pad in hand.
+
+### Step 7: packaging
+
+* `spatiquake/tools/make-release.sh APPIMAGE ID1 OUT`: `SpatiQuake-<version>/` with the AppImage
+  (which now carries `libopenxr_loader.so.1`), LibreQuake's `id1`, `spatiquake.sh` (the launcher;
+  saves and configs in `~/.local/share/spatiquake`), `add-to-host.sh` and `spatiand-host-app.toml`
+  (a `kind = "vr"` entry with `XR_RUNTIME_JSON`), README and licences, and a tar.gz of it.
+  CI's `release` job builds it; a `v*` tag attaches it to the GitHub release.
+* **Checked**: the release assembled from the dev build, the launcher started the engine flat from
+  it, `add-to-host.sh` wrote the entry, and the entry parses with spatiand-stream's own `Catalog`
+  type (kind Vr, eyes side_by_side).
 
 ## Not done
 
-* Steps 3 to 7 of the brief: the OpenXR mode, the 2D on a quad layer, OpenXR input (with aim held
-  apart from the view, see PLAN.md), testing against a headless Spatiand, packaging.
+* **Step 6, the composited room, without glasses.** The headless and snapshot Spatiands were built
+  from the spatiand repo (FFmpeg 9.0.2 from its GitHub mirror, as ffmpeg.org is blocked here). The
+  headless backend needs a render node (`/dev/dri/renderD128`), which this container has not got.
+  The snapshot backend runs in software and took SpatiQuake as its client: the runtime connected,
+  and Spatiand made it the environment ("an application became the environment"). But the runtime
+  could not allocate exportable (dmabuf) memory on lavapipe, so no picture reached the compositor.
+  Needed: a machine with a GPU (the Deck itself, in desktop mode, as spatiand's own conformance runs
+  are done), `SPATIAND_BACKEND=headless SPATIAND_HMD=null SPATIAND_INPUT=off`, then
+  `spatiquake.sh -xr`.
+* Running on the Deck in a Spatiand session, and through `spatiand-host` to the glasses: needs the
+  hardware.
+* Comfort and feel: world scale, snap angle, the 2D's size and distance, the gun's place, have not
+  been judged by a wearer.
+* The weapon model is drawn at the head's position with the aim's angles; a hand position for it
+  (the right hand's grip pose) would be better when the gyro aims.
+* A swapchain re-creation in the middle of a frame (a video restart from a cvar change while in the
+  OpenXR mode) is not handled carefully.
+* Modern rendering beyond vkQuake's ray-query shadows: to plan, sized to what the Deck sustains at
+  two eyes.
