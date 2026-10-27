@@ -60,23 +60,6 @@ void Cmd_Wait_f (void)
 }
 
 /*
-============
-Cmd_WaitForGame_f
-
-Delays the rest of the command buffer until the client is in the game (a map started with "map"
-has loaded and the client has spawned in it), or until there is no game being joined. For scripts
-that must not run ahead of a map loading, such as automated tests.
-============
-*/
-static qboolean cmd_wait_for_game;
-
-static void Cmd_WaitForGame_f (void)
-{
-	cmd_wait = true;
-	cmd_wait_for_game = true;
-}
-
-/*
 =============================================================================
 
 						COMMAND BUFFER
@@ -85,6 +68,43 @@ static void Cmd_WaitForGame_f (void)
 */
 
 sizebuf_t cmd_text;
+
+/*
+============
+Cmd_WaitForGame_f
+
+Sets the rest of the command buffer aside until the client is in the game (a map started with
+"map" has loaded and the client has spawned in it), or until there is no game being joined. For
+scripts that must not run ahead of a map loading, such as automated tests. The buffer itself goes
+on running meanwhile: the server's part of joining reaches the client as commands added to it.
+============
+*/
+static char *cmd_set_aside;
+static int	 cmd_set_aside_size;
+
+static void Cmd_WaitForGame_f (void)
+{
+	if (cmd_set_aside || !cmd_text.cursize)
+		return;
+	cmd_set_aside = (char *)Mem_Alloc (cmd_text.cursize + 1);
+	memcpy (cmd_set_aside, cmd_text.data, cmd_text.cursize);
+	cmd_set_aside_size = cmd_text.cursize;
+	SZ_Clear (&cmd_text);
+}
+
+static void Cbuf_TakeBackSetAside (void)
+{
+	if (!cmd_set_aside)
+		return;
+	if (cls.state != ca_dedicated && (sv.active || cls.state == ca_connected) && cls.signon != SIGNONS)
+		return; // not in the game yet
+	if (cmd_text.cursize + cmd_set_aside_size < cmd_text.maxsize)
+		SZ_Write (&cmd_text, cmd_set_aside, cmd_set_aside_size);
+	else
+		Con_Printf ("Cbuf_AddText: overflow\n");
+	Mem_Free (cmd_set_aside);
+	cmd_set_aside = NULL;
+}
 
 /*
 ============
@@ -168,12 +188,6 @@ void Cbuf_InsertText (const char *text)
 // Spike: for renderer/server isolation
 void Cbuf_Waited (void)
 {
-	if (cmd_wait_for_game)
-	{
-		if (cls.state != ca_dedicated && (sv.active || cls.state == ca_connected) && cls.signon != SIGNONS)
-			return;
-		cmd_wait_for_game = false;
-	}
 	cmd_wait = false;
 }
 
@@ -190,6 +204,8 @@ void Cbuf_Execute (void)
 	char *text;
 	char  line[1024];
 	int	  quotes, comment;
+
+	Cbuf_TakeBackSetAside ();
 
 	while (cmd_text.cursize && !cmd_wait)
 	{

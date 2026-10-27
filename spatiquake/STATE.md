@@ -22,8 +22,10 @@ network access to some hosts (LunarG's SDK, ffmpeg.org, fteqcc.org). So:
 * Notes from the smoke test: `wait` counts frames that pass while a map loads and the client joins
   over the loopback; on CI's runners those ran out before the client had the server's first
   message, so the picture was taken (or not) before the game began, depending on timing. The
-  engine has a command for it, `waitforgame` (in `Quake/cmd.c`): the rest of the script waits until
-  the client has spawned in the map (or no game is being joined). In a game `quit` opens the quit menu, which dims the screen (and the OpenXR mode's 2D
+  engine has a command for it, `waitforgame` (in `Quake/cmd.c`): the rest of the script is set
+  aside until the client has spawned in the map (or no game is being joined), while the command
+  buffer goes on running -- the server's part of joining arrives as commands added to it, so a
+  script that blocked the buffer would never see the game begin (the first try did just that). In a game `quit` opens the quit menu, which dims the screen (and the OpenXR mode's 2D
   layer): the test disconnects first. A screenshot asked for in a frame that got no image to draw
   into is now kept for the next frame, not dropped.
 
