@@ -6,7 +6,7 @@ ALSA lib confmisc.c:1342:(snd_func_refer) error evaluating name
 ALSA lib conf.c:5208:(_snd_config_evaluate) function snd_func_refer returned error: No such file or directory
 ALSA lib conf.c:5731:(snd_config_expand) Evaluate error: No such file or directory
 ALSA lib pcm.c:2721:(snd_pcm_open_noupdate) Unknown PCM default
-Command line: /home/runner/work/SpatiQuake/SpatiQuake/build/vkquake -basedir /home/runner/work/SpatiQuake/SpatiQuake/game -window -width 960 -height 540 -xr +r_oit 0 +vid_fsaa 0 +r_ssao 0 +exec spatiquake_smoke.cfg
+Command line: /home/runner/work/SpatiQuake/SpatiQuake/build/vkquake -basedir /home/runner/work/SpatiQuake/SpatiQuake/game -window -width 960 -height 540 -xr +exec spatiquake_smoke.cfg
 Using SDL version 2.30.0
 Detected 4 CPUs.
 Initializing vkQuake 1.37.1
@@ -18,7 +18,7 @@ Console initialized.
 UDP4 Initialized
 UDPv6 Initialized
 Server using protocol 999+ (FTE-RMQ)
-Exe: 12:52:38 Oct 27 2026 
+Exe: 13:28:08 Oct 27 2026 
 SDL Video Driver: x11
 OpenXR runtime: Spatiand 0.1.0
 OpenXR: 1920 x 1080 per eye
@@ -74,7 +74,7 @@ Sound Initialization
 OpenXR: session running
 OpenXR: swapchains 1920 x 1080, 9 images
 Creating color buffer
-AA disabled
+4 AA Samples
 Creating depth buffer
 Creating pipelines
 Couldn't open SDL audio: ALSA: Couldn't open audio device: No such file or directory
@@ -90,13 +90,6 @@ execing quake.rc
 execing default.cfg
 execing config.cfg
 couldn't exec autoexec.cfg
-OpenXR: swapchains 1920 x 1080, 9 images
-Creating color buffer
-AA disabled
-Creating depth buffer
-Creating pipelines
-Initializing samplers
-Texture lod bias: 0.000000
 execing spatiquake_smoke.cfg
 3 demo(s) in loop
 
@@ -126,7 +119,7 @@ Allocating indirect IBs (504 KB)
 Allocating visibility buffers (5 KB)
 player entered the game
 Reallocating dynamic storage buffers (2 KB)
-Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-125512-00.png
-Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-125512-01.png
-Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-125512-02.png
+Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-133220-00.png
+Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-133220-01.png
+Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-133221-00.png
 Client player removed
