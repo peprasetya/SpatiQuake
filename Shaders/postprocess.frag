@@ -6,6 +6,7 @@ layout (push_constant) uniform PushConsts
 {
 	float gamma;
 	float contrast;
+	float keep_alpha; // 1 for a picture that is a layer over others (OpenXR's 2D), 0 for the screen
 }
 push_constants;
 
@@ -15,7 +16,7 @@ layout (location = 0) out vec4 out_frag_color;
 
 void main ()
 {
-	vec3 frag = subpassLoad (color_input).rgb;
-	frag.rgb = frag.rgb * push_constants.contrast;
-	out_frag_color = vec4 (pow (frag, vec3 (push_constants.gamma)), 1.0);
+	vec4 input_color = subpassLoad (color_input);
+	vec3 frag = input_color.rgb * push_constants.contrast;
+	out_frag_color = vec4 (pow (frag, vec3 (push_constants.gamma)), mix (1.0, input_color.a, push_constants.keep_alpha));
 }

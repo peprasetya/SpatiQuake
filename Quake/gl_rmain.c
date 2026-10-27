@@ -331,8 +331,9 @@ R_SetupMatrices
 */
 static void R_SetupMatrices ()
 {
-	// Projection matrix
-	GL_FrustumMatrix (vulkan_globals.projection_matrix, DEG2RAD (r_fovx), DEG2RAD (r_fovy));
+	// Projection matrix: the eye's own field while drawing for OpenXR
+	if (!XR_EyeProjection (vulkan_globals.projection_matrix, NEARCLIP))
+		GL_FrustumMatrix (vulkan_globals.projection_matrix, DEG2RAD (r_fovx), DEG2RAD (r_fovy));
 
 	// View matrix
 	float rotation_matrix[16];

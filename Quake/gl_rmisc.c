@@ -1935,7 +1935,7 @@ void R_CreatePipelineLayouts ()
 
 		ZEROED_STRUCT (VkPushConstantRange, push_constant_range);
 		push_constant_range.offset = 0;
-		push_constant_range.size = 2 * sizeof (float);
+		push_constant_range.size = 3 * sizeof (float);
 		push_constant_range.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
 
 		ZEROED_STRUCT (VkPipelineLayoutCreateInfo, pipeline_layout_create_info);
@@ -2952,7 +2952,9 @@ static void R_InitDefaultStates (pipeline_create_infos_t *infos)
 		infos->blend_attachment_states[i].srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
 		infos->blend_attachment_states[i].dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 		infos->blend_attachment_states[i].colorBlendOp = VK_BLEND_OP_ADD;
-		infos->blend_attachment_states[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+		// Coverage accumulates in alpha ("over"), so the 2D drawn on a clear picture is a layer
+		// with the right alpha for OpenXR; nothing on the screen reads it.
+		infos->blend_attachment_states[i].srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
 		infos->blend_attachment_states[i].dstAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
 		infos->blend_attachment_states[i].alphaBlendOp = VK_BLEND_OP_ADD;
 	}

@@ -5,7 +5,9 @@
 #
 # BASEDIR holds id1/ (LibreQuake's paks). ARGS go to the engine before the test's own commands,
 # e.g. "+map lq_e1m1". Without a DISPLAY an Xvfb is started; without a GPU Mesa's lavapipe draws.
-# FRAMES (default 60) is how many frames are drawn before the screenshot.
+# FRAMES (default 60) is how many frames are drawn before the screenshot. SHOT (default
+# "screenshot png") is the command that takes it; with "xr_screenshot" (the OpenXR mode) there are
+# three pictures, saved as OUT with -left, -right and -2d before the .png.
 set -euo pipefail
 
 VKQUAKE="$(realpath "$1")"
@@ -13,6 +15,7 @@ BASEDIR="$(realpath "$2")"
 OUT="$3"
 shift 3
 FRAMES="${FRAMES:-60}"
+SHOT="${SHOT:-screenshot png}"
 mkdir -p "$(dirname "$OUT")"
 
 if [[ -z "${DISPLAY:-}" ]]; then
@@ -28,7 +31,7 @@ fi
 CFG="$BASEDIR/id1/spatiquake_smoke.cfg"
 {
     for ((i = 0; i < FRAMES; i++)); do printf 'wait\n'; done
-    printf 'screenshot png\nwait\nwait\nquit\n'
+    printf '%s\nwait\nwait\nwait\nwait\nquit\n' "$SHOT"
 } > "$CFG"
 STAMP="$BASEDIR/id1/.spatiquake_smoke_start"
 touch "$STAMP"
@@ -40,13 +43,21 @@ status=$?
 set -e
 rm -f "$CFG"
 # vkQuake names its screenshots itself (vkQuake-<map>-<time>.png); take the one this run wrote.
-SHOT="$(find "$BASEDIR/id1" -maxdepth 1 -name 'vkQuake-*.png' -newer "$STAMP" | head -1)"
+mapfile -t SHOTS < <(find "$BASEDIR/id1" -maxdepth 1 -name 'vkQuake-*.png' -newer "$STAMP" | sort)
 rm -f "$STAMP"
-if [[ -z "$SHOT" ]]; then
-    echo "no screenshot (exit $status); the end of the log:" >&2
+want=1
+[[ "$SHOT" == xr_screenshot* ]] && want=3
+if (( ${#SHOTS[@]} < want )); then
+    echo "${#SHOTS[@]} screenshots, wanted $want (exit $status); the end of the log:" >&2
     tail -40 "$LOG" >&2
     exit 1
 fi
-mv "$SHOT" "$OUT"
+if (( want == 1 )); then
+    mv "${SHOTS[0]}" "$OUT"
+else
+    mv "${SHOTS[0]}" "${OUT%.png}-left.png"
+    mv "${SHOTS[1]}" "${OUT%.png}-right.png"
+    mv "${SHOTS[2]}" "${OUT%.png}-2d.png"
+fi
 grep -E "QUAKE ERROR|Host_Error" "$LOG" && { echo "the engine reported an error" >&2; exit 1; }
 echo "ok: $OUT (exit $status)"

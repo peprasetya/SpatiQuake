@@ -57,7 +57,7 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #define MAXWIDTH	   10000
 #define MAXHEIGHT	   10000
 
-#define MAX_SWAP_CHAIN_IMAGES 8
+#define MAX_SWAP_CHAIN_IMAGES 32 // the OpenXR mode's swapchains share this list
 #define REQUIRED_COLOR_BUFFER_FEATURES                                                                                             \
 	(VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BIT | VK_FORMAT_FEATURE_COLOR_ATTACHMENT_BLEND_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_BIT | \
 	 VK_FORMAT_FEATURE_STORAGE_IMAGE_BIT | VK_FORMAT_FEATURE_SAMPLED_IMAGE_FILTER_LINEAR_BIT)
@@ -662,6 +662,8 @@ static qboolean VID_SetMode (int width, int height, float refreshrate, qboolean 
 
 	vid.width = VID_GetCurrentWidth ();
 	vid.height = VID_GetCurrentHeight ();
+	if (XR_Enabled ()) // everything is drawn at the eyes' size; the window only takes input
+		XR_GetEyeSize (&vid.width, &vid.height);
 	vid.conwidth = vid.width & 0xFFFFFFF8;
 	vid.conheight = vid.conwidth * vid.height / vid.width;
 
@@ -962,7 +964,10 @@ static void GL_InitInstance (void)
 
 	instance_create_info.enabledExtensionCount = sdl_extension_count + additionalExtensionCount;
 
-	err = vkCreateInstance (&instance_create_info, NULL, &vulkan_instance);
+	if (XR_Enabled ())
+		err = XR_CreateVulkanInstance (fpGetInstanceProcAddr, &instance_create_info, &vulkan_instance);
+	else
+		err = vkCreateInstance (&instance_create_info, NULL, &vulkan_instance);
 	if (err != VK_SUCCESS)
 		Sys_Error ("Couldn't create Vulkan instance with code %i", (int)err);
 
@@ -1168,6 +1173,8 @@ static void GL_InitDevice (void)
 	}
 	vulkan_physical_device = physical_devices[device_index];
 	Mem_Free (physical_devices);
+	if (XR_Enabled ())
+		vulkan_physical_device = XR_GetVulkanPhysicalDevice (vulkan_instance); // the one the runtime shows pictures from
 
 	qboolean found_swapchain_extension = false;
 	vulkan_globals.dedicated_allocation = false;
@@ -1273,7 +1280,7 @@ static void GL_InitDevice (void)
 
 	for (i = 0; i < vulkan_queue_count; ++i)
 	{
-		if (((queue_family_properties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) && queue_supports_present[i])
+		if (((queue_family_properties[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) != 0) && (queue_supports_present[i] || XR_Enabled ()))
 		{
 			found_graphics_queue = true;
 			vulkan_globals.gfx_queue_family_index = i;
@@ -1478,7 +1485,10 @@ static void GL_InitDevice (void)
 	device_create_info.ppEnabledExtensionNames = device_extensions;
 	device_create_info.pEnabledFeatures = &device_features;
 
-	err = vkCreateDevice (vulkan_physical_device, &device_create_info, NULL, &vulkan_globals.device);
+	if (XR_Enabled ())
+		err = XR_CreateVulkanDevice (fpGetInstanceProcAddr, vulkan_physical_device, &device_create_info, &vulkan_globals.device);
+	else
+		err = vkCreateDevice (vulkan_physical_device, &device_create_info, NULL, &vulkan_globals.device);
 	if (err != VK_SUCCESS)
 		Sys_Error ("Couldn't create Vulkan device with code %i", (int)err);
 
@@ -1524,6 +1534,8 @@ static void GL_InitDevice (void)
 
 	vkGetDeviceQueue (vulkan_globals.device, vulkan_globals.gfx_queue_family_index, 0, &vulkan_globals.queue);
 	vulkan_globals.queue_mutex = SDL_CreateMutex ();
+	if (XR_Enabled ())
+		XR_CreateSession (vulkan_instance, vulkan_physical_device, vulkan_globals.device, vulkan_globals.gfx_queue_family_index, vulkan_globals.queue_mutex);
 
 	VkFormatProperties format_properties;
 
@@ -2497,10 +2509,79 @@ void GL_UpdateDescriptorSets (void)
 GL_CreateSwapChain
 ===============
 */
+/*
+===============
+GL_CreateXRSwapChain
+
+In the OpenXR mode the runtime's swapchains (each eye's, then the 2D layer's) stand in for the
+window's: the frame's last pass draws into whichever of their images is the current target, and
+nothing is presented to the window.
+===============
+*/
+static int		xr_target_image = -1;
+static qboolean xr_target_is_layer;
+
+void GL_SetXRTarget (int image_index, qboolean layer)
+{
+	xr_target_image = image_index;
+	xr_target_is_layer = layer;
+}
+
+static qboolean GL_CreateXRSwapChain (void)
+{
+	VkResult err;
+	VkFormat formats[] = {VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_R8G8B8A8_UNORM};
+	qboolean created = false;
+	for (int f = 0; f < (int)countof (formats) && !created; ++f)
+	{
+		created = XR_CreateSwapchains (vid.width, vid.height, formats[f]);
+		if (created)
+			vulkan_globals.swap_chain_format = formats[f];
+		else
+			XR_DestroySwapchains ();
+	}
+	if (!created)
+		Sys_Error ("OpenXR: no swapchain in a format the engine can draw into");
+
+	num_swap_chain_images = XR_GetSwapchainImages (swapchain_images, MAX_SWAP_CHAIN_IMAGES);
+	num_images_acquired = 0;
+
+	ZEROED_STRUCT (VkImageViewCreateInfo, image_view_create_info);
+	image_view_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	image_view_create_info.format = vulkan_globals.swap_chain_format;
+	image_view_create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+	image_view_create_info.subresourceRange.levelCount = 1;
+	image_view_create_info.subresourceRange.layerCount = 1;
+	image_view_create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+	for (uint32_t i = 0; i < num_swap_chain_images; ++i)
+	{
+		GL_SetObjectName ((uint64_t)swapchain_images[i], VK_OBJECT_TYPE_IMAGE, "OpenXR Swap Chain");
+		image_view_create_info.image = swapchain_images[i];
+		err = vkCreateImageView (vulkan_globals.device, &image_view_create_info, NULL, &swapchain_images_views[i]);
+		if (err != VK_SUCCESS)
+			Sys_Error ("vkCreateImageView failed with code %i", (int)err);
+	}
+
+	// Not waited on or signalled in the OpenXR mode, but made so that destroying the swap chain is
+	// the same in both.
+	ZEROED_STRUCT (VkSemaphoreCreateInfo, semaphore_create_info);
+	semaphore_create_info.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+	for (int i = 0; i < DOUBLE_BUFFERED; ++i)
+		if (vkCreateSemaphore (vulkan_globals.device, &semaphore_create_info, NULL, &image_aquired_semaphores[i]) != VK_SUCCESS)
+			Sys_Error ("vkCreateSemaphore failed");
+	for (uint32_t i = 0; i < num_swap_chain_images; ++i)
+		if (vkCreateSemaphore (vulkan_globals.device, &semaphore_create_info, NULL, &draw_complete_semaphores[i]) != VK_SUCCESS)
+			Sys_Error ("vkCreateSemaphore failed");
+	return true;
+}
+
 static qboolean GL_CreateSwapChain (void)
 {
 	uint32_t i;
 	VkResult err;
+
+	if (XR_Enabled ())
+		return GL_CreateXRSwapChain ();
 
 #if defined(VK_EXT_full_screen_exclusive)
 	qboolean use_exclusive_full_screen = false;
@@ -2969,7 +3050,10 @@ static void GL_DestroyRenderResources (void)
 		draw_complete_semaphores[i] = VK_NULL_HANDLE;
 	}
 
-	fpDestroySwapchainKHR (vulkan_globals.device, vulkan_swapchain, NULL);
+	if (XR_Enabled ())
+		XR_DestroySwapchains ();
+	else
+		fpDestroySwapchainKHR (vulkan_globals.device, vulkan_swapchain, NULL);
 	vulkan_swapchain = VK_NULL_HANDLE;
 
 	R_DestroyRenderPasses ();
@@ -3465,7 +3549,16 @@ static void GL_EndRenderingTask (end_rendering_parms_t *parms)
 	}
 #endif
 
-	qboolean swapchain_acquired = parms->swapchain && GL_AcquireNextSwapChainImage ();
+	const qboolean xr_target = XR_Enabled () && (xr_target_image >= 0);
+	qboolean	   swapchain_acquired;
+	if (XR_Enabled ())
+	{
+		swapchain_acquired = parms->swapchain && xr_target;
+		if (swapchain_acquired)
+			current_swapchain_buffer = (uint32_t)xr_target_image;
+	}
+	else
+		swapchain_acquired = parms->swapchain && GL_AcquireNextSwapChainImage ();
 	if (frame_timing_enabled)
 		rs_gpuwaitaccum_us += (uint32_t)((Sys_DoubleTime () - display_wait_start) * 1000000.0);
 	if (swapchain_acquired == true)
@@ -3474,12 +3567,12 @@ static void GL_EndRenderingTask (end_rendering_parms_t *parms)
 
 		// Render post process
 		GL_Viewport (cbx, 0, 0, vid.width, vid.height, 0.0f, 1.0f);
-		float postprocess_values[2] = {vid_gamma.value, q_min (2.0f, q_max (1.0f, vid_contrast.value))};
+		float postprocess_values[3] = {vid_gamma.value, q_min (2.0f, q_max (1.0f, vid_contrast.value)), (xr_target && xr_target_is_layer) ? 1.0f : 0.0f};
 
 		R_BindPipeline (cbx, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkan_globals.postprocess_pipeline);
 		vkCmdBindDescriptorSets (
 			cbx->cb, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkan_globals.postprocess_pipeline.layout.handle, 0, 1, &postprocess_descriptor_set, 0, NULL);
-		R_PushConstants (cbx, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 2 * sizeof (float), postprocess_values);
+		R_PushConstants (cbx, VK_SHADER_STAGE_FRAGMENT_BIT, 0, 3 * sizeof (float), postprocess_values);
 		vkCmdDraw (cbx->cb, 3, 1, 0, 0);
 	}
 
@@ -3504,6 +3597,26 @@ static void GL_EndRenderingTask (end_rendering_parms_t *parms)
 	const uint32_t	 submit_count = R_RecordFrame (
 		  parms, swapchain_acquired, current_swapchain_buffer, submit_cbs, countof (submit_cbs), take_screenshot ? GL_RecordFrameReadback : NULL, &readback);
 
+	if (xr_target && swapchain_acquired)
+	{
+		// The last pass leaves the image ready to present; OpenXR takes it back as a colour attachment.
+		ZEROED_STRUCT (VkImageMemoryBarrier, image_barrier);
+		image_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		image_barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		image_barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		image_barrier.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		image_barrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		image_barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		image_barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		image_barrier.image = swapchain_images[current_swapchain_buffer];
+		image_barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		image_barrier.subresourceRange.levelCount = 1;
+		image_barrier.subresourceRange.layerCount = 1;
+		vkCmdPipelineBarrier (
+			render_passes_cb, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0,
+			0, NULL, 0, NULL, 1, &image_barrier);
+	}
+
 	if (frame_timing_enabled && (timestamp_query_pool != VK_NULL_HANDLE))
 	{
 		vkCmdWriteTimestamp (render_passes_cb, VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT, timestamp_query_pool, (cb_index * 2) + 1);
@@ -3523,9 +3636,9 @@ static void GL_EndRenderingTask (end_rendering_parms_t *parms)
 		submit_info.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submit_info.commandBufferCount = submit_count;
 		submit_info.pCommandBuffers = submit_cbs;
-		submit_info.waitSemaphoreCount = swapchain_acquired ? 1 : 0;
+		submit_info.waitSemaphoreCount = (swapchain_acquired && !xr_target) ? 1 : 0;
 		submit_info.pWaitSemaphores = &image_aquired_semaphores[cb_index];
-		submit_info.signalSemaphoreCount = swapchain_acquired ? 1 : 0;
+		submit_info.signalSemaphoreCount = (swapchain_acquired && !xr_target) ? 1 : 0;
 		submit_info.pSignalSemaphores = &draw_complete_semaphores[current_swapchain_buffer];
 		VkPipelineStageFlags wait_dst_stage_mask = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 		submit_info.pWaitDstStageMask = &wait_dst_stage_mask;
@@ -3545,7 +3658,7 @@ static void GL_EndRenderingTask (end_rendering_parms_t *parms)
 	}
 	take_screenshot = false;
 
-	if (swapchain_acquired == true)
+	if (swapchain_acquired == true && !xr_target)
 	{
 		ZEROED_STRUCT (VkPresentInfoKHR, present_info);
 		present_info.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -4090,10 +4203,14 @@ void VID_Init (void)
 
 	vid_initialized = true;
 
+	XR_Init ();
+
 	vid.colormap = host_colormap;
 	vid.fullbright = 256 - LittleLong (*((int *)vid.colormap + 2048));
 
 	VID_SetMode (width, height, refreshrate, fullscreen);
+	if (COM_CheckParm ("-xr") && !XR_Enabled ())
+		Sys_Error ("-xr: no OpenXR runtime with a head-mounted display (see the console log)");
 
 	// set window icon
 	PL_SetWindowIcon ();

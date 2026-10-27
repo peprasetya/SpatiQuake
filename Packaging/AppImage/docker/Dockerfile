@@ -46,6 +46,7 @@ RUN apt-get update \
 	libxxf86vm-dev \
 	libflac-dev \
 	libopus-dev \
+	libopenxr-dev \
 	libopusfile-dev \
 	wayland-protocols \
 	zlib1g-dev \

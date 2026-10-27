@@ -155,7 +155,8 @@ qboolean	   in_update_screen;
 extern jmp_buf screen_error;
 SDL_Mutex	  *draw_qcvm_mutex;
 
-void SCR_ScreenShot_f (void);
+void		SCR_ScreenShot_f (void);
+static void SCR_XRScreenShot_f (void);
 
 /*
 ===============================================================================
@@ -725,6 +726,7 @@ void SCR_Init (void)
 	}
 
 	Cmd_AddCommand ("screenshot", SCR_ScreenShot_f);
+	Cmd_AddCommand ("xr_screenshot", SCR_XRScreenShot_f);
 	Cmd_AddCommand ("sizeup", SCR_SizeUp_f);
 	Cmd_AddCommand ("sizedown", SCR_SizeDown_f);
 
@@ -1674,6 +1676,112 @@ static void SCR_DrawDone (void *unused)
 
 /*
 ==================
+SCR_DrawXRTarget
+
+One of the OpenXR mode's pictures: an eye's view of the world, or the 2D alone on a clear picture
+for the layer in front of the head. Drawn without tasks, one after another.
+==================
+*/
+static qboolean SCR_DrawXRTarget (xr_target_t target, const vec3_t base_origin, const vec3_t base_angles, const vrect_t *base_vrect)
+{
+	task_handle_t unused;
+	if (!GL_BeginRendering (false, &unused, &glwidth, &glheight))
+		return false;
+	GL_SetXRTarget ((int)XR_AcquireTarget (target), target == XR_TARGET_UI);
+
+	if (target == XR_TARGET_UI)
+	{
+		const VkClearValue saved_clear = vulkan_globals.color_clear_value;
+		const uint8_t	   saved_blend = v_blend[3];
+		memset (&vulkan_globals.color_clear_value, 0, sizeof (vulkan_globals.color_clear_value));
+		v_blend[3] = 0.0f; // the world's tint is in the eyes' pictures
+		render_warp = false;
+		XR_SetDrawingEye (-1);
+		SCR_DrawGUI (NULL);
+		SCR_DrawDone (NULL);
+		GL_EndRendering (false, true);
+		vulkan_globals.color_clear_value = saved_clear;
+		v_blend[3] = saved_blend;
+	}
+	else
+	{
+		vec3_t offset, angles;
+		float  fov_x, fov_y;
+		XR_GetEyeView ((int)target, base_angles[YAW], offset, angles, &fov_x, &fov_y);
+		VectorAdd (base_origin, offset, r_refdef.vieworg);
+		VectorCopy (angles, r_refdef.viewangles);
+		r_refdef.fov_x = fov_x;
+		r_refdef.fov_y = fov_y;
+		r_refdef.vrect.x = r_refdef.vrect.y = 0;
+		r_refdef.vrect.width = vid.width;
+		r_refdef.vrect.height = vid.height;
+		XR_SetDrawingEye ((int)target);
+		V_RenderView (false, INVALID_TASK_HANDLE, INVALID_TASK_HANDLE, INVALID_TASK_HANDLE, INVALID_TASK_HANDLE);
+		GL_DrawSceneUpscale (vulkan_globals.secondary_cb_contexts[SCBX_GUI]);
+		SCR_DrawDone (NULL);
+		GL_EndRendering (false, true);
+		XR_SetDrawingEye (-1);
+		VectorCopy (base_origin, r_refdef.vieworg);
+		VectorCopy (base_angles, r_refdef.viewangles);
+		r_refdef.vrect = *base_vrect;
+	}
+
+	GL_SetXRTarget (-1, false);
+	XR_ReleaseTarget (target);
+	return true;
+}
+
+// xr_screenshot: one screenshot of each picture of the next frame (left eye, right eye, 2D)
+static qboolean xr_screenshot_pending;
+static void		SCR_XRScreenShot_f (void)
+{
+	if (!XR_Enabled ())
+	{
+		Con_Printf ("xr_screenshot: not in the OpenXR mode\n");
+		return;
+	}
+	xr_screenshot_pending = true;
+}
+
+/*
+==================
+SCR_UpdateScreenXR
+
+The world once per eye from the head's pose, turned by the body's yaw, then the 2D.
+==================
+*/
+static void SCR_UpdateScreenXR (void)
+{
+	GL_SynchronizeEndRenderingTask ();
+	if (!XR_BeginFrame ())
+		return;
+
+	SCR_SetupFrame (NULL);
+	S_ExtraUpdate ();
+
+	vec3_t	base_origin, base_angles;
+	vrect_t base_vrect = r_refdef.vrect;
+	VectorCopy (r_refdef.vieworg, base_origin);
+	VectorCopy (r_refdef.viewangles, base_angles);
+	const float base_fov_x = r_refdef.fov_x, base_fov_y = r_refdef.fov_y;
+
+	const qboolean screenshots = xr_screenshot_pending;
+	xr_screenshot_pending = false;
+	for (int target = 0; target < XR_TARGET_COUNT; ++target)
+	{
+		if (screenshots)
+			Cmd_ExecuteString ("screenshot png", src_command); // taken from the next picture drawn
+		if (!SCR_DrawXRTarget ((xr_target_t)target, base_origin, base_angles, &base_vrect))
+			break;
+	}
+
+	r_refdef.fov_x = base_fov_x;
+	r_refdef.fov_y = base_fov_y;
+	XR_EndFrame ();
+}
+
+/*
+==================
 SCR_UpdateScreen
 
 This is called every frame, and can also be called explicitly to flush
@@ -1713,6 +1821,19 @@ void SCR_UpdateScreen (qboolean use_tasks)
 
 	// decide on the height of the console
 	con_forcedup = !cl.worldmodel || cls.signon != SIGNONS;
+
+	if (XR_SessionRunning ())
+	{
+		SCR_UpdateScreenXR ();
+		in_update_screen = false;
+		return;
+	}
+	else if (XR_Enabled ())
+	{
+		// The runtime is not showing us yet (or has stopped): nothing to draw into.
+		in_update_screen = false;
+		return;
+	}
 
 	task_handle_t begin_rendering_task = INVALID_TASK_HANDLE;
 	if (!GL_BeginRendering (use_tasks, &begin_rendering_task, &glwidth, &glheight))

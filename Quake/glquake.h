@@ -38,6 +38,7 @@ qboolean	  GL_AcquireNextSwapChainImage (void);
 // Sends the frame to the GPU. With use_tasks, creates a task for the caller to
 // submit, which runs after drawing commands are recorded. Otherwise runs here.
 task_handle_t GL_EndRendering (qboolean use_tasks, qboolean use_swapchain);
+void		  GL_SetXRTarget (int image_index, qboolean layer); // -1: the window's swap chain; layer: keep alpha
 // Waits until the CPU has submitted the frame. The GPU may still be drawing it.
 void		  GL_SynchronizeEndRenderingTask (void);
 void		  GL_UpdateDescriptorSets (void);

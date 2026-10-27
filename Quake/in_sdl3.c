@@ -153,6 +153,8 @@ void IN_SendKeyEvents (void)
 		// data1/data2 are in pixels, matching vid.width/height, and this also
 		// fires when only the display scale changes
 		case SDL_EVENT_WINDOW_PIXEL_SIZE_CHANGED:
+			if (XR_Enabled ()) // OpenXR: the eyes' size, not the window's
+				break;
 			vid.width = event.window.data1;
 			vid.height = event.window.data2;
 			vid.restart_next_frame = true;

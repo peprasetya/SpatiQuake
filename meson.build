@@ -304,6 +304,7 @@ srcs = [
     'Quake/view.c',
     'Quake/wad.c',
     'Quake/world.c',
+    'Quake/xr.c',
 	'Quake/hash_map.c',
 	 run_generate_embedded_pak,
 ]
@@ -373,6 +374,14 @@ else
         molten_dirs += '/opt/homebrew/lib'
     endif
     deps += cc.find_library('MoltenVK', required : true, dirs : molten_dirs)
+endif
+
+# OpenXR mode: only the headers; the loader is opened at run time, so the engine starts
+# without it and stays flat.
+openxr_dep = dependency('openxr', required : get_option('use_openxr'))
+if openxr_dep.found()
+    deps += openxr_dep.partial_dependency(compile_args : true, includes : true)
+    cflags += '-DUSE_OPENXR'
 endif
 
 if get_option('use_codec_wave').enabled()

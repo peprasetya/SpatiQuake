@@ -162,7 +162,7 @@ void IN_SendKeyEvents (void)
 				S_BlockSound ();
 				VID_FocusLost ();
 			}
-			else if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED)
+			else if (event.window.event == SDL_WINDOWEVENT_SIZE_CHANGED && !XR_Enabled ()) // OpenXR: the eyes' size, not the window's
 			{
 				vid.width = event.window.data1;
 				vid.height = event.window.data2;

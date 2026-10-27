@@ -395,6 +395,7 @@ static inline int FindLastBitNonZero64 (const uint64_t mask)
 #include "menu.h"
 #include "cdaudio.h"
 #include "glquake.h"
+#include "xr.h"
 #include "../Shaders/shaders.h"
 
 #include "tasks.h"
