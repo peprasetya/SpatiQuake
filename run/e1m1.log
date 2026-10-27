@@ -18,7 +18,7 @@ Console initialized.
 UDP4 Initialized
 UDPv6 Initialized
 Server using protocol 999+ (FTE-RMQ)
-Exe: 14:05:37 Oct 27 2026 
+Exe: 14:21:36 Oct 27 2026 
 SDL Video Driver: x11
 OpenXR: no runtime with XR_KHR_vulkan_enable2
 
@@ -86,33 +86,8 @@ from '/home/runner/work/SpatiQuake/SpatiQuake/game'
 execing quake.rc
 execing default.cfg
 execing config.cfg
+Disabling renderer/network isolation.
 couldn't exec autoexec.cfg
 execing spatiquake_smoke.cfg
-3 demo(s) in loop
-
-============================== 
-check out our commands 
-Zoom90 or Zoom120 for the zoom function 
-Dev for development bindings 
-Cam for the camera system we use for the main menu demos 
-============================== 
-
-============================== 
-LibreQuake Version V0.10-beta 
-============================== 
-
-vkQuake 1.37.1 Server (11815 CRC)
-
-
-
-Rats Behind Bars
-Using protocol fte999
-Allocating surface submodel indices (75 KB)
-Allocating lightmap compute surface data (1214 KB)
-Allocating acceleration structure data (4766 KB)
-Reallocating dynamic AS scratch buffer (8192 KB)
-Allocating indirect draw data (4 KB, 229 draws)
-Allocating indirect IBs (504 KB)
-Allocating visibility buffers (5 KB)
-Reallocating dynamic storage buffers (2 KB)
-Client player removed
+<-- server to client keepalive
+Client unconnected removed
