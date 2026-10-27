@@ -19,9 +19,11 @@ network access to some hosts (LunarG's SDK, ffmpeg.org, fteqcc.org). So:
 * `spatiquake/tools/smoke-test.sh` runs any of this to a screenshot; CI runs it with LibreQuake's
   real data, flat and in the OpenXR mode. CI's pictures and logs are pushed to the `ci-screenshots`
   branch (`run/` and `xr/`), as GitHub's artifact storage is out of this container's reach.
-* Notes from the smoke test: `host_maxfps` at 72 or under turns off vkQuake's renderer/network
-  isolation, and then `wait` counts frames even while a map is loading (the screenshot came before
-  the map). In a game `quit` opens the quit menu, which dims the screen (and the OpenXR mode's 2D
+* Notes from the smoke test: `wait` counts frames that pass while a map loads and the client joins
+  over the loopback; on CI's runners those ran out before the client had the server's first
+  message, so the picture was taken (or not) before the game began, depending on timing. The
+  engine has a command for it, `waitforgame` (in `Quake/cmd.c`): the rest of the script waits until
+  the client has spawned in the map (or no game is being joined). In a game `quit` opens the quit menu, which dims the screen (and the OpenXR mode's 2D
   layer): the test disconnects first. A screenshot asked for in a frame that got no image to draw
   into is now kept for the next frame, not dropped.
 

@@ -60,6 +60,23 @@ void Cmd_Wait_f (void)
 }
 
 /*
+============
+Cmd_WaitForGame_f
+
+Delays the rest of the command buffer until the client is in the game (a map started with "map"
+has loaded and the client has spawned in it), or until there is no game being joined. For scripts
+that must not run ahead of a map loading, such as automated tests.
+============
+*/
+static qboolean cmd_wait_for_game;
+
+static void Cmd_WaitForGame_f (void)
+{
+	cmd_wait = true;
+	cmd_wait_for_game = true;
+}
+
+/*
 =============================================================================
 
 						COMMAND BUFFER
@@ -151,6 +168,12 @@ void Cbuf_InsertText (const char *text)
 // Spike: for renderer/server isolation
 void Cbuf_Waited (void)
 {
+	if (cmd_wait_for_game)
+	{
+		if (cls.state != ca_dedicated && (sv.active || cls.state == ca_connected) && cls.signon != SIGNONS)
+			return;
+		cmd_wait_for_game = false;
+	}
 	cmd_wait = false;
 }
 
@@ -583,6 +606,7 @@ void Cmd_Init (void)
 	Cmd_AddCommand ("alias", Cmd_Alias_f);
 	Cmd_AddCommand ("cmd", Cmd_ForwardToServer);
 	Cmd_AddCommand ("wait", Cmd_Wait_f);
+	Cmd_AddCommand ("waitforgame", Cmd_WaitForGame_f);
 
 	Cmd_AddCommand ("apropos", Cmd_Apropos_f);
 	Cmd_AddCommand ("find", Cmd_Apropos_f);

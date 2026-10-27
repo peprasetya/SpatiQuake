@@ -8,8 +8,8 @@
 # FRAMES (default 60) is how many frames are drawn before the screenshot. SHOT (default
 # "screenshot png") is the command that takes it; with "xr_screenshot" (the OpenXR mode) there are
 # three pictures, saved as OUT with -left, -right and -2d before the .png. MAP loads that map
-# first, from the test's own commands, so the frames counted are frames drawn in it (a +map given
-# in ARGS loads while they are being counted, and the screenshot would find nothing drawn).
+# first, from the test's own commands, and the frames are counted once the game has begun (a +map
+# given in ARGS loads while they are being counted, and the screenshot would find nothing drawn).
 set -euo pipefail
 
 VKQUAKE="$(realpath "$1")"
@@ -32,7 +32,9 @@ fi
 # `wait` is the only way to ask for a frame from a script.
 CFG="$BASEDIR/id1/spatiquake_smoke.cfg"
 {
-    [[ -n "${MAP:-}" ]] && printf 'map %s\n' "$MAP"
+    # waitforgame (SpatiQuake's): `wait` alone counts frames that pass while the map loads and the
+    # client joins, and the picture would be taken before the game began.
+    [[ -n "${MAP:-}" ]] && printf 'map %s\nwaitforgame\n' "$MAP"
     for ((i = 0; i < FRAMES; i++)); do printf 'wait\n'; done
     # Then frames enough for it to be written (it is taken from the first frame that gets an image
     # to draw into).
