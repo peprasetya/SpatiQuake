@@ -3652,11 +3652,13 @@ static void GL_EndRenderingTask (end_rendering_parms_t *parms)
 
 	vulkan_globals.device_idle = false;
 
+	// A frame that did not get an image to draw into reads nothing back: the screenshot is then
+	// taken from the next one that does.
 	if (take_screenshot && (readback.buffer != VK_NULL_HANDLE))
 	{
 		WriteScreenshot (readback.buffer, readback.memory);
+		take_screenshot = false;
 	}
-	take_screenshot = false;
 
 	if (swapchain_acquired == true && !xr_target)
 	{

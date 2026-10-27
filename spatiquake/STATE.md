@@ -17,7 +17,13 @@ network access to some hosts (LunarG's SDK, ffmpeg.org, fteqcc.org). So:
   frame, the 2D with its alpha): that is exactly the picture the runtime copies out.
 * **The composited room** (headless Spatiand) needs a GPU: see "Not done".
 * `spatiquake/tools/smoke-test.sh` runs any of this to a screenshot; CI runs it with LibreQuake's
-  real data, flat and in the OpenXR mode.
+  real data, flat and in the OpenXR mode. CI's pictures and logs are pushed to the `ci-screenshots`
+  branch (`run/` and `xr/`), as GitHub's artifact storage is out of this container's reach.
+* Notes from the smoke test: `host_maxfps` at 72 or under turns off vkQuake's renderer/network
+  isolation, and then `wait` counts frames even while a map is loading (the screenshot came before
+  the map). In a game `quit` opens the quit menu, which dims the screen (and the OpenXR mode's 2D
+  layer): the test disconnects first. A screenshot asked for in a frame that got no image to draw
+  into is now kept for the next frame, not dropped.
 
 ## Done
 
@@ -71,7 +77,9 @@ network access to some hosts (LunarG's SDK, ffmpeg.org, fteqcc.org). So:
   and `xr_hud_size` (0.85) of the eyes' field across, so all of it is in view on the glasses. The
   post-process keeps alpha for it (a push constant), and blending now accumulates coverage in alpha
   (`srcAlphaBlendFactor = ONE`; nothing on the screen reads alpha).
-* **Checked**: the 2D picture of the console at the eye size (`xr_screenshot`).
+* **Checked**: the 2D picture of the console at the eye size (`xr_screenshot`); in CI, in
+  `lq_e1m1`, the 2D picture holds the status bar. An earlier veil over the whole layer (alpha 0.67
+  where nothing is drawn) was the quit menu's fade, opened by the test's own `quit`.
 * Limits: the scene colour buffer is `A2B10G10R10`, so the layer's alpha has four levels;
   translucent 2D (a half-transparent console) is quantised.
 * The 2D crosshair is not drawn in the OpenXR mode; a small cross is drawn in the world where the
@@ -101,7 +109,7 @@ network access to some hosts (LunarG's SDK, ffmpeg.org, fteqcc.org). So:
 The owner wants SpatiQuake to be a Spatiand application -- listed behind the Spatiand bubble, and
 installed by dragging it into the room -- not an AppImage.
 
-* **Spatiand side** (peprasetya/spatiand, branch `installed-apps`, PR #1, for the owner to review):
+* **Spatiand side** (peprasetya/spatiand, PR #1, merged into its master at the owner's word):
   applications installed into `~/.local/share/spatiand/apps/<id>/` with a `spatiand-app.toml`,
   listed after Spatiand's own; a `.spatiapp` (that folder as a gzipped tar) dropped onto the room
   is offered on the notice card and installed when the card is pressed; `spatiand --install FILE`
@@ -121,6 +129,7 @@ installed by dragging it into the room -- not an AppImage.
   its icon. The installed copy started (flat, no runtime) with its saves in the user's folder.
   `spatiand --install` on the same package; the host entry parses with spatiand-stream's own
   `Catalog`.
+* **Checked in CI**: the `release` job builds the `.spatiapp` (artifact `spatiquake-spatiapp`).
 * **Not checked**: the CI-built package (the AppDir path) on SteamOS.
 
 ## Not done
