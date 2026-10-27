@@ -1,4 +1,4 @@
-spatiand-openxr [ INFO] spatiand-openxr 0.1.0 loaded in pid 4031
+spatiand-openxr [ INFO] spatiand-openxr 0.1.0 loaded in pid 3203
 spatiand-openxr [ INFO] negotiated with the loader
 spatiand-openxr [ INFO] xrCreateInstance for "SpatiQuake" with ["XR_KHR_vulkan_enable2"]
 spatiand-openxr [DEBUG] xrGetOpenGLGraphicsRequirementsKHR was asked for and is not implemented
@@ -227,7 +227,7 @@ Console initialized.
 UDP4 Initialized
 UDPv6 Initialized
 Server using protocol 999+ (FTE-RMQ)
-Exe: 16:06:10 Oct 27 2026 
+Exe: 16:25:17 Oct 27 2026 
 SDL Video Driver: x11
 OpenXR runtime: Spatiand 0.1.0
 OpenXR: 1920 x 1080 per eye
@@ -314,10 +314,9 @@ Reallocating dynamic AS scratch buffer (8192 KB)
 Allocating indirect draw data (4 KB, 229 draws)
 Allocating indirect IBs (504 KB)
 Allocating visibility buffers (5 KB)
-player entered the game
 Reallocating dynamic storage buffers (2 KB)
-Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-161740-00.png
-Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-161740-01.png
-Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-161741-00.png
+Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-162908-00.png
+Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-162909-00.png
+Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-162909-01.png
 Client player removed
 Reallocating dynamic vertex buffers (512 KB)
