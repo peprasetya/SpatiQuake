@@ -621,12 +621,13 @@ static void R_FillDebugVertex (basicvertex_t *vertex, const vec3_t position, uin
 R_EmitWirePoint -- johnfitz -- draws a wireframe cross shape for point entities
 ================
 */
-static void R_EmitWirePoint (cb_context_t *cbx, const vec3_t origin, uint32_t color)
+extern cvar_t crosshair;
+
+static void R_EmitWirePointSized (cb_context_t *cbx, const vec3_t origin, uint32_t color, float size)
 {
 	VkBuffer	   vertex_buffer;
 	VkDeviceSize   vertex_buffer_offset;
 	basicvertex_t *vertices = (basicvertex_t *)R_VertexAllocate (6 * sizeof (basicvertex_t), &vertex_buffer, &vertex_buffer_offset);
-	const float	   size = 8.0f;
 	vec3_t		   positions[6];
 
 	VectorCopy (origin, positions[0]);
@@ -647,6 +648,37 @@ static void R_EmitWirePoint (cb_context_t *cbx, const vec3_t origin, uint32_t co
 
 	vulkan_globals.vk_cmd_bind_vertex_buffers (cbx->cb, 0, 1, &vertex_buffer, &vertex_buffer_offset);
 	vulkan_globals.vk_cmd_draw (cbx->cb, 6, 1, 0, 0);
+}
+
+static void R_EmitWirePoint (cb_context_t *cbx, const vec3_t origin, uint32_t color)
+{
+	R_EmitWirePointSized (cbx, origin, color, 8.0f);
+}
+
+/*
+================
+R_DrawXRAimPoint
+
+The OpenXR mode's crosshair: a small cross in the world where the aim meets it, traced from where
+the server fires from. It keeps the same size in view at any distance.
+================
+*/
+static void R_DrawXRAimPoint (cb_context_t *cbx)
+{
+	if (XR_DrawingEye () < 0 || !crosshair.value || key_dest != key_game || cl.intermission || cl.stats[STAT_HEALTH] <= 0 || !cl.worldmodel)
+		return;
+	vec3_t start, end, impact, forward, right, up;
+	VectorCopy (cl.entities[cl.viewentity].origin, start);
+	start[2] += 16.0f; // the weapons fire from here (QuakeC's W_FireAxe and friends)
+	AngleVectors (cl.viewangles, forward, right, up);
+	VectorMA (start, 4096.0f, forward, end);
+	TraceLine (start, end, impact);
+	VectorMA (impact, -2.0f, forward, impact); // in front of the wall, not in it
+	vec3_t to_eye;
+	VectorSubtract (impact, r_refdef.vieworg, to_eye);
+	const float distance = VectorLength (to_eye);
+	R_BindPipeline (cbx, VK_PIPELINE_BIND_POINT_GRAPHICS, vulkan_globals.debug_lines_pipeline[cbx->pipeline_variant]);
+	R_EmitWirePointSized (cbx, impact, 0xFF3020FF, q_max (1.0f, distance * 0.015f));
 }
 
 /*
@@ -1477,6 +1509,7 @@ static void R_DrawViewModelTask (void *unused)
 	R_ShowSkeletons (cbx);
 	R_ShowBoundingBoxes (cbx); // johnfitz
 	R_ShowPointFile (cbx);
+	R_DrawXRAimPoint (cbx);
 }
 
 /*
