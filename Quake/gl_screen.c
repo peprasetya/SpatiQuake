@@ -1643,7 +1643,7 @@ static void SCR_DrawGUI (void *unused)
 			SCR_CheckDrawCenterString (cbx);
 		if (!(dbg & 2))
 			Sbar_Draw (cbx);
-		if (!(dbg & 16))
+		if (!(dbg & 64))
 		{
 			SCR_DrawDevStats (cbx); // johnfitz
 			SCR_DrawSpeed (cbx);
@@ -1654,8 +1654,10 @@ static void SCR_DrawGUI (void *unused)
 		}
 		if (!(dbg & 4))
 			SCR_DrawConsole (cbx);
-		if (!(dbg & 16))
+		if (!(dbg & 128))
 			M_Draw (cbx);
+		if (dbg)
+			Con_Printf ("XR_DEBUG_2D: key_dest %d m_state %d paused %d\n", (int)key_dest, (int)m_state, (int)cl.paused);
 	}
 
 	SDL_UnlockMutex (draw_qcvm_mutex);

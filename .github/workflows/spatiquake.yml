@@ -135,11 +135,11 @@ jobs:
         sudo apt-get install -y imagemagick >/dev/null
         export XR_RUNTIME_JSON=$HOME/.local/share/spatiand-openxr/spatiand_openxr.json
         mkdir -p shots/alpha
-        for mask in 0 32 1 2 4 8 16 31; do
+        for mask in 0 16 64 128; do
           if [ "$mask" = 32 ]; then export XR_DEBUG_EMPTY_2D=1; else unset XR_DEBUG_EMPTY_2D; fi
           XR_DEBUG_2D=$mask MAP=lq_e1m1 SHOT=xr_screenshot FRAMES=60 spatiquake/tools/smoke-test.sh build/vkquake game "shots/alpha/m$mask.png" -xr >/dev/null 2>&1 || true
           a="$(convert "shots/alpha/m$mask-2d.png" -format '%[fx:p{960,300}.a]' info: 2>/dev/null || echo none)"
-          echo "skip mask $mask: alpha at the centre = $a" | tee -a shots/alpha/summary.txt
+          echo "skip mask $mask: alpha at the centre = $a; $(grep -m1 'XR_DEBUG_2D:' "shots/alpha/m$mask.log")" | tee -a shots/alpha/summary.txt
         done
     - uses: actions/upload-artifact@v7
       if: always()
