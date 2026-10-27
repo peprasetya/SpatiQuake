@@ -18,7 +18,7 @@ Console initialized.
 UDP4 Initialized
 UDPv6 Initialized
 Server using protocol 999+ (FTE-RMQ)
-Exe: 13:28:08 Oct 27 2026 
+Exe: 13:50:50 Oct 27 2026 
 SDL Video Driver: x11
 OpenXR runtime: Spatiand 0.1.0
 OpenXR: 1920 x 1080 per eye
@@ -119,7 +119,7 @@ Allocating indirect IBs (504 KB)
 Allocating visibility buffers (5 KB)
 player entered the game
 Reallocating dynamic storage buffers (2 KB)
-Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-133007-00.png
-Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-133007-01.png
-Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-133008-00.png
+Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-135246-00.png
+Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-135246-01.png
+Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261027-135247-00.png
 Client player removed

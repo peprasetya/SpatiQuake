@@ -1,8 +1,4 @@
-skip mask 0: alpha at the centre = 0.666667
-skip mask 32: alpha at the centre = 0
-skip mask 1: alpha at the centre = 0.666667
-skip mask 2: alpha at the centre = 0.666667
-skip mask 4: alpha at the centre = 0.666667
-skip mask 8: alpha at the centre = 0.666667
-skip mask 16: alpha at the centre = 0
-skip mask 31: alpha at the centre = 0
+skip mask 0: alpha at the centre = 0.666667; 
+skip mask 16: alpha at the centre = 0.666667; XR_DEBUG_2D: key_dest 1 m_state 16 paused 0
+skip mask 64: alpha at the centre = 0.666667; XR_DEBUG_2D: key_dest 1 m_state 16 paused 0
+skip mask 128: alpha at the centre = 0; XR_DEBUG_2D: key_dest 3 m_state 16 paused 0
