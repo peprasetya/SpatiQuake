@@ -27,11 +27,19 @@ jobs:
           libopusfile-dev libopenxr-dev
     # The parts of the Vulkan SDK the build uses: newer headers and a spirv-opt with
     # --canonicalize-ids (Ubuntu's are too old), as upstream's AppImage image does.
+    # Kept between runs; when fetched, retried (LunarG's server has dropped the connection mid-way).
+    - uses: actions/cache@v4
+      with:
+        path: ~/vulkan-sdk.tar.xz
+        key: vulkan-sdk-${{ env.VULKAN_SDK_VER }}
     - name: Vulkan SDK
       run: |
         mkdir -p "$HOME/vulkan-sdk"
-        curl -sSfL "https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/linux/vulkansdk-linux-x86_64-$VULKAN_SDK_VER.tar.xz" \
-          | tar -xJ -C "$HOME/vulkan-sdk" --strip-components=1 --wildcards \
+        if ! xz -t "$HOME/vulkan-sdk.tar.xz" 2>/dev/null; then
+          curl -sSfL --retry 5 --retry-all-errors --retry-delay 5 -o "$HOME/vulkan-sdk.tar.xz" \
+            "https://sdk.lunarg.com/sdk/download/$VULKAN_SDK_VER/linux/vulkansdk-linux-x86_64-$VULKAN_SDK_VER.tar.xz"
+        fi
+        tar -xJf "$HOME/vulkan-sdk.tar.xz" -C "$HOME/vulkan-sdk" --strip-components=1 --wildcards \
             "$VULKAN_SDK_VER/x86_64/bin/glslang*" "$VULKAN_SDK_VER/x86_64/bin/spirv-opt" \
             "$VULKAN_SDK_VER/x86_64/include" "$VULKAN_SDK_VER/x86_64/lib/libvulkan.so*"
         sdk="$HOME/vulkan-sdk/x86_64"
