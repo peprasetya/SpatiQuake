@@ -18,7 +18,7 @@ Console initialized.
 UDP4 Initialized
 UDPv6 Initialized
 Server using protocol 999+ (FTE-RMQ)
-Exe: 16:19:13 Oct 28 2026 
+Exe: 16:49:38 Oct 28 2026 
 SDL Video Driver: x11
 OpenXR: no runtime with XR_KHR_vulkan_enable2
 
@@ -102,8 +102,7 @@ Reallocating dynamic AS scratch buffer (8192 KB)
 Allocating indirect draw data (4 KB, 229 draws)
 Allocating indirect IBs (504 KB)
 Allocating visibility buffers (5 KB)
-player entered the game
 Reallocating dynamic storage buffers (2 KB)
-Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261028-162047-00.png
+Wrote vkQuake-Rats_Behind_Bars-lq_e1m1-20261028-165148-00.png
 Client player removed
 Reallocating dynamic vertex buffers (512 KB)
