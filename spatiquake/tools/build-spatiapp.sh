@@ -28,16 +28,18 @@ ENGINE="${ENGINE:-$(command -v podman || command -v docker || true)}"
     exit 1
 }
 ENGINE="$(basename "$ENGINE")"
-IMAGE=spatiquake-build
-
-# The image: upstream's build image, and what LibreQuake's build needs on top.
-echo "== the build image ($ENGINE)"
+# Two images: the engine is built in upstream's build image (Ubuntu 22.04: what is built there
+# runs on SteamOS); LibreQuake's data on Ubuntu 24.04, as LibreQuake's own CI does it (the tools
+# it fetches ready-made, fteqcc and ericw-tools, need a newer C library than 22.04's).
+echo "== the build images ($ENGINE)"
 BASE="${BASE_IMAGE:-spatiquake-build-base}"
 [[ -n "${BASE_IMAGE:-}" ]] || "$ENGINE" build -t "$BASE" Packaging/AppImage/docker
-"$ENGINE" build -t "$IMAGE" - <<EOF
-FROM $BASE
+DATA_IMAGE=spatiquake-data
+[[ -n "${ID1:-}" ]] || "$ENGINE" build -t "$DATA_IMAGE" - <<'EOF'
+FROM ubuntu:24.04
 RUN apt-get update \
- && apt-get install -y git curl unzip python3 libpng-dev \
+ && DEBIAN_FRONTEND=noninteractive apt-get install -y git curl ca-certificates unzip python3 \
+    build-essential cmake zlib1g-dev libpng-dev \
  && rm -rf /var/lib/apt/lists/*
 EOF
 
@@ -61,32 +63,41 @@ if [[ "$ENGINE" == docker ]]; then
 else
     VOLUME="$VOLUME:Z"
 fi
+in_container() {
+    local image="$1"
+    shift
+    "$ENGINE" run --rm "${USER_ARGS[@]}" -v "$VOLUME" -w /src -e JOBS="${JOBS:-}" \
+        -e VERSION="$(git describe --tags --always 2>/dev/null || echo dev)" "$image" bash -euo pipefail -c "$@"
+}
 
-echo "== building"
-"$ENGINE" run --rm "${USER_ARGS[@]}" -v "$VOLUME" -w /src -e ID1_IN="$ID1_IN" -e JOBS="${JOBS:-}" \
-    -e VERSION="$(git describe --tags --always 2>/dev/null || echo dev)" "$IMAGE" bash -euo pipefail -c '
+if [[ -z "${ID1:-}" ]]; then
     stamp=build/librequake/id1/.built-by
     want="$(sha256sum spatiquake/tools/build-librequake.sh | cut -c1-16)"
-    if [[ "$ID1_IN" == /src/build/librequake/id1 && "$(cat "$stamp" 2>/dev/null)" != "$want" ]]; then
-        echo "== LibreQuake (its maps take the longest)"
+    if [[ "$(cat "$stamp" 2>/dev/null)" != "$want" ]]; then
+        echo "== LibreQuake's data (its maps take the longest)"
         rm -rf build/librequake/id1
-        spatiquake/tools/build-librequake.sh
+        in_container "$DATA_IMAGE" 'spatiquake/tools/build-librequake.sh'
         echo "$want" > "$stamp"
+    else
+        echo "== LibreQuake's data: already built"
     fi
+fi
 
-    echo "== the engine"
+echo "== the engine"
+in_container "$BASE" '
     rm -rf build/appdir build/AppDir
     python3 /opt/meson/meson.py setup build/appdir -Ddebug=true -Dstrip=false -Dmp3_lib=mad
     ninja -C build/appdir ${JOBS:+-j "$JOBS"}
     # The OpenXR loader is opened at run time (the OpenXR mode), so linuxdeploy would not see it.
-    ( cd Packaging/AppImage && NO_STRIP=1 ./linuxdeploy-x86_64.AppImage --appimage-extract-and-run \
+    cd Packaging/AppImage
+    NO_STRIP=1 ./linuxdeploy-x86_64.AppImage --appimage-extract-and-run \
         -e ../../build/appdir/vkquake --appdir=../../build/AppDir -d ../../Misc/vkquake.desktop \
         -i ../../Misc/vkQuake_256.png --icon-filename=vkquake \
-        -l /usr/lib/x86_64-linux-gnu/libopenxr_loader.so.1 >/dev/null )
-
-    echo "== the package"
-    spatiquake/tools/make-release.sh build/AppDir "$ID1_IN" dist
+        -l /usr/lib/x86_64-linux-gnu/libopenxr_loader.so.1 >/dev/null
 '
+
+echo "== the package"
+in_container "$BASE" "spatiquake/tools/make-release.sh build/AppDir $ID1_IN dist"
 echo
 ls -l dist/SpatiQuake-*.spatiapp
 cat <<EOF
