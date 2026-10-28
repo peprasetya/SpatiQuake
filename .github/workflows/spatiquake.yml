@@ -51,10 +51,15 @@ jobs:
         echo "PKG_CONFIG_PATH=$sdk/lib/pkgconfig" >> "$GITHUB_ENV"
     - name: Build
       run: meson setup build && ninja -C build
+    # A debug build too: Vulkan's validation layer (-validation) is only in debug builds.
+    - name: Debug build
+      run: meson setup build-debug -Dbuildtype=debugoptimized && ninja -C build-debug && cp build-debug/vkquake build/vkquake-debug
     - uses: actions/upload-artifact@v7
       with:
         name: spatiquake-linux
-        path: build/vkquake
+        path: |
+          build/vkquake
+          build/vkquake-debug
 
   data:
     uses: ./.github/workflows/librequake.yml
@@ -159,7 +164,9 @@ jobs:
       continue-on-error: true
       run: |
         export XR_RUNTIME_JSON=$HOME/.local/share/spatiand-openxr/spatiand_openxr.json
-        MAP=lq_e1m1 SHOT=xr_screenshot FRAMES=30 TIMEOUT=600 spatiquake/tools/smoke-test.sh build/vkquake game shots/validation.png -xr -validation || true
+        chmod +x build/vkquake-debug
+        MAP=lq_e1m1 SHOT=xr_screenshot FRAMES=30 TIMEOUT=900 spatiquake/tools/smoke-test.sh build/vkquake-debug game shots/validation.png -xr -validation || true
+        grep -q "Using VK_LAYER_KHRONOS_validation" shots/validation.log || echo "the validation layer was not used"
         grep -oE "VUID-[A-Za-z0-9_-]+|UNASSIGNED-[A-Za-z0-9_.-]+|SYNC-[A-Za-z0-9_-]+" shots/validation.log | sort | uniq -c | sort -rn | tee shots/validation-summary.txt
         grep -m5 -A3 "Validation Error" shots/validation.log || echo "no validation errors"
     - uses: actions/upload-artifact@v7

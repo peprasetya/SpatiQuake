@@ -71,7 +71,9 @@ and is kept only if it stays inside the budget.
 * The 2D layer: drawn without the scene. **Done**: its frame skips the scene pass (the MSAA colour
   and depth clears, OIT, the resolve), SSAO and the screen effects; the colour buffer the 2D is
   drawn onto is cleared instead (`R_ClearUIColorBuffer`, `Quake/r_passes.c`). On lavapipe its GPU
-  time went from about 110 ms to 24 ms (the eyes' about 100 ms each). With a render scale
+  time went from about 110 ms to 24 ms (the eyes' about 100 ms each) at the menu, and in CI in
+  `lq_e1m1` from 141 ms to 12 ms (the eyes about 330 ms each), the picture the same (the status
+  bar, clear elsewhere). With a render scale
   (`r_width`/`r_height`) the 2D still takes the full frame, for now.
 * **Expected**: the right eye's GPU and CPU time drops well below the left's.
 
