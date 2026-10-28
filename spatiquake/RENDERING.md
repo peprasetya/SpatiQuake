@@ -70,6 +70,12 @@ and is kept only if it stays inside the budget.
   timings are too noisy to. (The first CI comparison was void: LibreQuake's progs refused
   `impulse 9`, so only the shotgun fired and there was nearly no dynamic light; it now uses the
   engine's `give`.)
+  **Measured in CI** (lavapipe, `lq_e1m1`, rockets firing, 0.7 dynamic lights alive a frame on
+  average): lightmap blocks updated a frame 28.8 with `xr_sharedlightmaps 0`, 16.9 with 1 (41%
+  fewer); the right eye's GPU time 416 ms to 390 ms (6% less), the left's unchanged (425, 429).
+  Standing still with no dynamic lights, 15 blocks a frame are updated anyway (flickering
+  lightstyles), once already. The saving grows with the dynamic lights in view (a firefight); how
+  much of the Deck's frame it is, its `xr_bench` will tell.
 * Cull once for a view that covers both eyes; record what both eyes share once.
 * Particles: simulate once a frame (check that the second render doesn't step them again).
 * The 2D layer: drawn without the scene. **Done**: its frame skips the scene pass (the MSAA colour
