@@ -1,2 +1,0 @@
-    296 VUID-VkImageMemoryBarrier-oldLayout-01213
-    148 VUID-vkCmdClearColorImage-image-00002
