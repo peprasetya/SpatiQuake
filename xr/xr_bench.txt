@@ -1,1 +1,1 @@
-map lq_e1m1 frames 20 period_ms 13.89 late 19 missed 668 gpu_left 203.88/238.59 gpu_right 190.76/199.08 gpu_2d 95.57/103.75 gpu_all 490.20 cpu 501.55/680.17 | eye 1920x1080 render full vid_fsaa 4 r_ssao 1 r_oit 1 r_rtshadows 2 r_dynamic 1 r_particles 2
+map lq_e1m1 frames 20 period_ms 13.89 late 19 missed 1061 gpu_left 325.10/333.38 gpu_right 306.64/314.25 gpu_2d 141.04/147.14 gpu_all 772.78 cpu 788.27/1067.60 | eye 1920x1080 render full vid_fsaa 4 r_ssao 1 r_oit 1 r_rtshadows 2 r_dynamic 1 r_particles 2
