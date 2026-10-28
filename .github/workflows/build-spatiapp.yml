@@ -1,0 +1,23 @@
+name: SpatiQuake from source
+
+# spatiquake/tools/build-spatiapp.sh as someone builds SpatiQuake on their own machine: from
+# nothing, the build image, LibreQuake's data and the engine, in one container, on one runner.
+# Started by hand (it takes long); the release job in spatiquake.yml runs the same script with
+# the image and the data CI keeps.
+
+on: workflow_dispatch
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 300
+    steps:
+    - uses: actions/checkout@v6
+      with:
+        fetch-depth: 0
+    - name: build-spatiapp.sh
+      run: ENGINE=docker spatiquake/tools/build-spatiapp.sh
+    - uses: actions/upload-artifact@v7
+      with:
+        name: spatiquake-spatiapp-from-source
+        path: dist/*.spatiapp

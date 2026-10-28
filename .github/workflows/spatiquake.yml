@@ -167,9 +167,6 @@ jobs:
     - uses: actions/checkout@v6
       with:
         fetch-depth: 0
-    - name: Version
-      id: version
-      run: echo "version=$(git describe --tags --always)" >> "$GITHUB_OUTPUT"
     - uses: docker/setup-buildx-action@v4
     - uses: docker/build-push-action@v7
       with:
@@ -180,16 +177,14 @@ jobs:
         push: false
         cache-from: type=gha
         cache-to: type=gha
-    - name: The engine and its libraries
-      run: docker run --rm --privileged -v "$PWD:/usr/src/vkQuake" build-vkquake /usr/src/vkQuake/spatiquake/tools/build-appdir-in-docker.sh
     - uses: actions/download-artifact@v8
       with:
         name: librequake-id1
         path: game/id1
-    - name: The package
-      run: |
-        sudo chown -R "$(id -u)" build
-        VERSION=${{ steps.version.outputs.version }} spatiquake/tools/make-release.sh build/AppDir game/id1 dist
+    # The script anyone builds it with (spatiquake/BUILDING.md), with the image and the data CI
+    # already has.
+    - name: The engine, its libraries and the package
+      run: BASE_IMAGE=build-vkquake ID1=game/id1 ENGINE=docker spatiquake/tools/build-spatiapp.sh
     - uses: actions/upload-artifact@v7
       with:
         name: spatiquake-spatiapp

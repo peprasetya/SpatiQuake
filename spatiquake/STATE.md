@@ -123,7 +123,7 @@ installed by dragging it into the room -- not an AppImage.
 * **SpatiQuake side**: `spatiquake/tools/make-release.sh ENGINE ID1 OUT` makes
   `SpatiQuake-<version>.spatiapp`: one folder `spatiquake/` with `spatiand-app.toml` (`kind = "vr"`,
   icon, version), the engine in `bin/` and the libraries it was built with in `lib/` (from
-  linuxdeploy's AppDir, made by `spatiquake/tools/build-appdir-in-docker.sh` in upstream's
+  linuxdeploy's AppDir, made by `spatiquake/tools/build-spatiapp.sh` in upstream's
   Ubuntu 22.04 build image, with the OpenXR loader), LibreQuake's `id1/`, `spatiquake.sh` (the
   launcher: saves and configs in `~/.local/share/spatiquake`, where the game folder holds links to
   the data, so an update never touches them), README and licences, and `add-to-host.sh` with

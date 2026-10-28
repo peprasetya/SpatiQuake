@@ -4,7 +4,7 @@
 #   spatiquake/tools/make-release.sh ENGINE ID1_DIR OUT_DIR
 #
 # ENGINE is linuxdeploy's AppDir (usr/bin/vkquake and the libraries it needs in usr/lib, as
-# spatiquake/tools/build-appdir-in-docker.sh makes it on Ubuntu 22.04, so it runs on SteamOS), or
+# spatiquake/tools/build-spatiapp.sh makes it on Ubuntu 22.04, so it runs on SteamOS), or
 # for a quick local package just the vkquake program. ID1_DIR is LibreQuake's built id1.
 #
 # The package is a gzipped tar of one folder, spatiquake/, with spatiand-app.toml at its top: the
