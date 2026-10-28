@@ -65,7 +65,11 @@ and is kept only if it stays inside the budget.
   renders; lightstyle changes already weren't. The update is lit as seen from the head, between
   the eyes (it only decides which texels face away and get no dynamic light). `xr_sharedlightmaps
   0` brings back the update per eye, for comparing with `xr_bench`; CI benchmarks both under fire
-  (rockets and explosions are dynamic lights).
+  (rockets and explosions are dynamic lights). `xr_bench` also counts the lightmap blocks updated
+  and the dynamic lights alive a frame, which shows the work saved exactly, where lavapipe's
+  timings are too noisy to. (The first CI comparison was void: LibreQuake's progs refused
+  `impulse 9`, so only the shotgun fired and there was nearly no dynamic light; it now uses the
+  engine's `give`.)
 * Cull once for a view that covers both eyes; record what both eyes share once.
 * Particles: simulate once a frame (check that the second render doesn't step them again).
 * The 2D layer: drawn without the scene. **Done**: its frame skips the scene pass (the MSAA colour

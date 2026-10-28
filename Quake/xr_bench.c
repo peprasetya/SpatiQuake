@@ -34,6 +34,8 @@ static int	  bench_late_frames;   // frames shown later than the one before them
 static int	  bench_missed_frames; // display frames that went by with nothing new
 static double bench_last_display_time;
 static double bench_period_sum;
+static double bench_lightmap_blocks; // lightmap blocks updated (both eyes' renders), summed over the frames
+static double bench_dlights;		 // dynamic lights alive, summed over the frames
 static float *bench_cpu_ms;
 static float *bench_gpu_ms[XR_TARGET_COUNT];
 static int	  bench_gpu_count[XR_TARGET_COUNT];
@@ -100,6 +102,9 @@ static void XR_Bench_Report (void)
 		Con_Printf ("  %-10s  %6.2f %6.2f %6.2f\n", names[t], gpu[t].avg, gpu[t].p95, gpu[t].max);
 	Con_Printf ("  all three   %6.2f\n", gpu_total);
 	Con_Printf ("  CPU ms      %6.2f %6.2f %6.2f\n", cpu.avg, cpu.p95, cpu.max);
+	const double lm_blocks = bench_frames ? bench_lightmap_blocks / bench_frames : 0.0;
+	const double dlights = bench_frames ? bench_dlights / bench_frames : 0.0;
+	Con_Printf ("  a frame: %.1f lightmap blocks updated, %.1f dynamic lights\n", lm_blocks, dlights);
 
 	// One line a run, with what decides the cost.
 	const int	r_width = (int)Cvar_VariableValue ("r_width"), r_height = (int)Cvar_VariableValue ("r_height");
@@ -113,10 +118,10 @@ static void XR_Bench_Report (void)
 	fprintf (
 		f,
 		"map %s frames %d period_ms %.2f late %d missed %d gpu_left %.2f/%.2f gpu_right %.2f/%.2f gpu_2d %.2f/%.2f gpu_all %.2f cpu %.2f/%.2f"
-		" | eye %dx%d render %s vid_fsaa %s r_ssao %s r_oit %s r_rtshadows %s r_dynamic %s r_particles %s xr_sharedlightmaps %s\n",
+		" lm_blocks %.1f dlights %.1f | eye %dx%d render %s vid_fsaa %s r_ssao %s r_oit %s r_rtshadows %s r_dynamic %s r_particles %s xr_sharedlightmaps %s\n",
 		map, bench_frames, period_ms, bench_late_frames, bench_missed_frames, gpu[0].avg, gpu[0].p95, gpu[1].avg, gpu[1].p95, gpu[2].avg, gpu[2].p95, gpu_total,
-		cpu.avg, cpu.p95, vid.width, vid.height, render, Cvar_VariableString ("vid_fsaa"), Cvar_VariableString ("r_ssao"), Cvar_VariableString ("r_oit"),
-		Cvar_VariableString ("r_rtshadows"), Cvar_VariableString ("r_dynamic"), Cvar_VariableString ("r_particles"),
+		cpu.avg, cpu.p95, lm_blocks, dlights, vid.width, vid.height, render, Cvar_VariableString ("vid_fsaa"), Cvar_VariableString ("r_ssao"),
+		Cvar_VariableString ("r_oit"), Cvar_VariableString ("r_rtshadows"), Cvar_VariableString ("r_dynamic"), Cvar_VariableString ("r_particles"),
 		Cvar_VariableString ("xr_sharedlightmaps"));
 	fclose (f);
 	Con_Printf ("xr_bench: added to %s/xr_bench.txt\n", com_gamedir);
@@ -144,7 +149,8 @@ static void XR_Bench_f (void)
 	}
 	bench_frames_wanted = frames;
 	bench_frames = bench_late_frames = bench_missed_frames = 0;
-	bench_last_display_time = bench_period_sum = 0.0;
+	bench_last_display_time = bench_period_sum = bench_lightmap_blocks = bench_dlights = 0.0;
+	Atomic_StoreUInt32 (&rs_dynamiclightmaps, 0u); // counted since who knows when
 	gl_timing_wanted = true;
 	Con_Printf ("xr_bench: measuring %d frames\n", frames);
 }
@@ -185,6 +191,12 @@ void XR_Bench_Frame (double cpu_seconds)
 	}
 	bench_last_display_time = display_time;
 	bench_period_sum += period;
+	bench_lightmap_blocks += Atomic_LoadUInt32 (&rs_dynamiclightmaps);
+	if (!scr_speeds.value) // which resets it otherwise
+		Atomic_StoreUInt32 (&rs_dynamiclightmaps, 0u);
+	for (int i = 0; i < MAX_DLIGHTS; ++i)
+		if (cl_dlights[i].die >= cl.time && cl_dlights[i].radius > 0.0f)
+			bench_dlights += 1.0;
 	bench_cpu_ms[bench_frames++] = (float)(cpu_seconds * 1000.0);
 	if (bench_frames >= bench_frames_wanted)
 	{

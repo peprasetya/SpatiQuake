@@ -152,9 +152,9 @@ jobs:
         # once a display frame for both eyes, then once per eye: the right eye's time is the
         # difference.
         for shared in 1 0; do
-          MAP=lq_e1m1 SHOT="god;impulse 9;impulse 7;+attack;wait;xr_sharedlightmaps $shared;xr_bench 20" WANT=0 AFTER=1500 FRAMES=30 TIMEOUT=600 \
+          MAP=lq_e1m1 SHOT="god;give 7;give r 100;impulse 7;+attack;wait;wait;wait;xr_sharedlightmaps $shared;xr_bench 20" WANT=0 AFTER=1500 FRAMES=30 TIMEOUT=600 \
             spatiquake/tools/smoke-test.sh build/vkquake game shots/bench-fire-$shared.png -xr
-          grep -A6 "^xr_bench: 20 frames" shots/bench-fire-$shared.log
+          grep -A7 "^xr_bench: 20 frames" shots/bench-fire-$shared.log
         done
         cp game/id1/xr_bench.txt shots/
     # The same frames with Vulkan's validation layer: what it reports is listed (one line per
