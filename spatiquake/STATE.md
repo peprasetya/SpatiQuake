@@ -135,7 +135,11 @@ installed by dragging it into the room -- not an AppImage.
   its icon. The installed copy started (flat, no runtime) with its saves in the user's folder.
   `spatiand --install` on the same package; the host entry parses with spatiand-stream's own
   `Catalog`.
-* **Checked in CI**: the `release` job builds the `.spatiapp` (artifact `spatiquake-spatiapp`).
+* **Checked in CI**: the `release` job builds the `.spatiapp` (artifact `spatiquake-spatiapp`)
+  with `spatiquake/tools/build-spatiapp.sh`, the script anyone builds it with
+  (`spatiquake/BUILDING.md`); the manual "SpatiQuake from source" workflow runs that script from
+  nothing (docker, Ubuntu 24.04 runner): the images, LibreQuake's data and the engine, in about
+  1 h 40 min. Not yet run with podman or on a Deck.
 * **Not checked**: the CI-built package (the AppDir path) on SteamOS.
 
 ## Not done

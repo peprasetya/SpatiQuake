@@ -19,6 +19,9 @@ Artifacts are kept for 90 days. A tagged release (`v0.1.0`, say) also puts the p
 
 ## 2. Build the package yourself, on a Linux PC or on the Deck
 
+(Checked: CI's "SpatiQuake from source" workflow runs exactly this, from nothing, with docker on
+Ubuntu 24.04. It hasn't been run on a Deck yet.)
+
 Everything happens in a container made from vkQuake's own build image (Ubuntu 22.04, so the result
 runs on SteamOS), the same way CI's release job does it. Nothing is installed on the machine apart
 from the container image.
@@ -41,8 +44,9 @@ spatiquake/tools/build-spatiapp.sh
 It ends with the path of the package, `dist/SpatiQuake-<version>.spatiapp`.
 
 The first run is the long one. It builds the image (it fetches the Vulkan SDK and builds SDL3, a
-few minutes), then LibreQuake's data from source: the maps are compiled one by one, which takes
-something like half an hour on a fast PC and longer on the Deck. Both are kept: the image by
+few minutes), then LibreQuake's data from source: the maps are compiled one by one. On GitHub's
+4-core build machines the whole first run took about an hour and 40 minutes; expect about that
+on the Deck (also 4 cores; keep it plugged in), and less on a PC with more cores. Both are kept: the image by
 podman or docker, the data in `build/librequake/id1`. After that a run only rebuilds the engine,
 in a few minutes. To update: `git pull`, then run the script again.
 
