@@ -113,10 +113,11 @@ static void XR_Bench_Report (void)
 	fprintf (
 		f,
 		"map %s frames %d period_ms %.2f late %d missed %d gpu_left %.2f/%.2f gpu_right %.2f/%.2f gpu_2d %.2f/%.2f gpu_all %.2f cpu %.2f/%.2f"
-		" | eye %dx%d render %s vid_fsaa %s r_ssao %s r_oit %s r_rtshadows %s r_dynamic %s r_particles %s\n",
+		" | eye %dx%d render %s vid_fsaa %s r_ssao %s r_oit %s r_rtshadows %s r_dynamic %s r_particles %s xr_sharedlightmaps %s\n",
 		map, bench_frames, period_ms, bench_late_frames, bench_missed_frames, gpu[0].avg, gpu[0].p95, gpu[1].avg, gpu[1].p95, gpu[2].avg, gpu[2].p95, gpu_total,
 		cpu.avg, cpu.p95, vid.width, vid.height, render, Cvar_VariableString ("vid_fsaa"), Cvar_VariableString ("r_ssao"), Cvar_VariableString ("r_oit"),
-		Cvar_VariableString ("r_rtshadows"), Cvar_VariableString ("r_dynamic"), Cvar_VariableString ("r_particles"));
+		Cvar_VariableString ("r_rtshadows"), Cvar_VariableString ("r_dynamic"), Cvar_VariableString ("r_particles"),
+		Cvar_VariableString ("xr_sharedlightmaps"));
 	fclose (f);
 	Con_Printf ("xr_bench: added to %s/xr_bench.txt\n", com_gamedir);
 }

@@ -143,6 +143,14 @@ jobs:
         export XR_RUNTIME_JSON=$HOME/.local/share/spatiand-openxr/spatiand_openxr.json
         MAP=lq_e1m1 SHOT="xr_bench 20" WANT=0 AFTER=1500 FRAMES=30 TIMEOUT=300 spatiquake/tools/smoke-test.sh build/vkquake game shots/bench.png -xr
         grep -A6 "^xr_bench: 20 frames" shots/bench.log
+        # Under fire (rockets and their explosions are dynamic lights), the lightmaps updated
+        # once a display frame for both eyes, then once per eye: the right eye's time is the
+        # difference.
+        for shared in 1 0; do
+          MAP=lq_e1m1 SHOT="god;impulse 9;impulse 7;+attack;wait;xr_sharedlightmaps $shared;xr_bench 20" WANT=0 AFTER=1500 FRAMES=30 TIMEOUT=600 \
+            spatiquake/tools/smoke-test.sh build/vkquake game shots/bench-fire-$shared.png -xr
+          grep -A6 "^xr_bench: 20 frames" shots/bench-fire-$shared.log
+        done
         cp game/id1/xr_bench.txt shots/
     # The same frames with Vulkan's validation layer: what it reports is listed (one line per
     # message ID), for the OpenXR mode's own changes to the frame (its targets, the 2D layer's frame

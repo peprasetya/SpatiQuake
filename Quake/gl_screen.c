@@ -81,21 +81,23 @@ float scr_con_current;
 float scr_conlines; // lines of console to display
 
 // johnfitz -- new cvars
-cvar_t scr_menuscale = {"scr_menuscale", "1", CVAR_ARCHIVE};
-cvar_t scr_sbarscale = {"scr_sbarscale", "1", CVAR_ARCHIVE};
-cvar_t scr_sbaralpha = {"scr_sbaralpha", "0.75", CVAR_ARCHIVE};
-cvar_t scr_conwidth = {"scr_conwidth", "0", CVAR_ARCHIVE};
-cvar_t scr_conscale = {"scr_conscale", "1", CVAR_ARCHIVE};
-cvar_t scr_crosshairscale = {"scr_crosshairscale", "1", CVAR_ARCHIVE};
-cvar_t scr_showspeed = {"scr_showspeed", "0", CVAR_ARCHIVE};
-cvar_t scr_showspeed_ofs = {"scr_showspeed_ofs", "0", CVAR_ARCHIVE};
-cvar_t scr_centerprintbg = {"scr_centerprintbg", "2", CVAR_ARCHIVE}; // 0=off, 1=text box, 2=menu box, 3=menu strip
-cvar_t scr_infoscale = {"scr_infoscale", "2.0", CVAR_ARCHIVE};
-cvar_t scr_showfps = {"scr_showfps", "0", CVAR_ARCHIVE};
-cvar_t scr_clock = {"scr_clock", "0", CVAR_NONE};
-cvar_t scr_autoclock = {"scr_autoclock", "1", CVAR_ARCHIVE};
-cvar_t scr_usekfont = {"scr_usekfont", "0", CVAR_NONE}; // 2021 re-release
-cvar_t scr_style = {"scr_style", "0", CVAR_ARCHIVE_GAME};
+cvar_t		  scr_menuscale = {"scr_menuscale", "1", CVAR_ARCHIVE};
+cvar_t		  scr_sbarscale = {"scr_sbarscale", "1", CVAR_ARCHIVE};
+cvar_t		  scr_sbaralpha = {"scr_sbaralpha", "0.75", CVAR_ARCHIVE};
+cvar_t		  scr_conwidth = {"scr_conwidth", "0", CVAR_ARCHIVE};
+cvar_t		  scr_conscale = {"scr_conscale", "1", CVAR_ARCHIVE};
+cvar_t		  scr_crosshairscale = {"scr_crosshairscale", "1", CVAR_ARCHIVE};
+cvar_t		  scr_showspeed = {"scr_showspeed", "0", CVAR_ARCHIVE};
+cvar_t		  scr_showspeed_ofs = {"scr_showspeed_ofs", "0", CVAR_ARCHIVE};
+cvar_t		  scr_centerprintbg = {"scr_centerprintbg", "2", CVAR_ARCHIVE}; // 0=off, 1=text box, 2=menu box, 3=menu strip
+cvar_t		  scr_infoscale = {"scr_infoscale", "2.0", CVAR_ARCHIVE};
+cvar_t		  scr_showfps = {"scr_showfps", "0", CVAR_ARCHIVE};
+// The OpenXR mode: the lightmaps updated once a display frame for both eyes (0: once per eye, to compare)
+static cvar_t xr_sharedlightmaps = {"xr_sharedlightmaps", "1", CVAR_NONE};
+cvar_t		  scr_clock = {"scr_clock", "0", CVAR_NONE};
+cvar_t		  scr_autoclock = {"scr_autoclock", "1", CVAR_ARCHIVE};
+cvar_t		  scr_usekfont = {"scr_usekfont", "0", CVAR_NONE}; // 2021 re-release
+cvar_t		  scr_style = {"scr_style", "0", CVAR_ARCHIVE_GAME};
 
 cvar_t scr_viewsize = {"viewsize", "100", CVAR_ARCHIVE_GAME};
 cvar_t scr_viewsize_allow_shrinking = {"viewsize_allow_shrinking", "0", CVAR_ARCHIVE_GAME};
@@ -676,6 +678,7 @@ void SCR_Init (void)
 	Cvar_RegisterVariable (&scr_showspeed);
 	Cvar_RegisterVariable (&scr_showspeed_ofs);
 	Cvar_RegisterVariable (&scr_showfps);
+	Cvar_RegisterVariable (&xr_sharedlightmaps);
 	Cvar_RegisterVariable (&scr_clock);
 	Cvar_RegisterVariable (&scr_autoclock);
 	// johnfitz
@@ -1674,6 +1677,8 @@ static void SCR_DrawDone (void *unused)
 	rs_gpuwaittime_us = rs_gpuwaitaccum_us;
 	rs_gpuwaitaccum_us = 0;
 	r_framecount++;
+	if (!XR_SessionRunning () || !xr_sharedlightmaps.value)
+		++r_lightmap_framecount; // the OpenXR mode's is one a display frame, for both eyes
 }
 
 /*
@@ -1775,8 +1780,17 @@ static void SCR_UpdateScreenXR (void)
 	// The weapon is held at the head, pointing where the aim is (V_CalcRefdef gave it the aim's
 	// angles); it does not turn with the head.
 	vec3_t head_offset, head_angles;
+	VectorCopy (base_origin, r_lightmap_vieworg);
 	if (XR_GetHeadView (XR_BodyYaw (), head_offset, head_angles))
+	{
 		VectorAdd (cl.viewent.origin, head_offset, cl.viewent.origin);
+		VectorAdd (base_origin, head_offset, r_lightmap_vieworg);
+	}
+	if (xr_sharedlightmaps.value)
+	{
+		++r_lightmap_framecount;
+		r_lightmap_vieworg_set = true;
+	}
 
 	const qboolean screenshots = xr_screenshot_pending;
 	xr_screenshot_pending = false;
@@ -1790,6 +1804,7 @@ static void SCR_UpdateScreenXR (void)
 
 	r_refdef.fov_x = base_fov_x;
 	r_refdef.fov_y = base_fov_y;
+	r_lightmap_vieworg_set = false;
 	XR_EndFrame ();
 	XR_Bench_Frame (Sys_DoubleTime () - work_start);
 }

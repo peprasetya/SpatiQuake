@@ -3545,7 +3545,7 @@ void R_FlushUpdateLightmaps (
 						cached_dlights,
 						current_compute_buffer_index * MAX_MODELS,
 						(1 - current_compute_buffer_index) * MAX_MODELS};
-					memcpy (&push_constants[8], r_refdef.vieworg, 3 * sizeof (float));
+					memcpy (&push_constants[8], r_lightmap_vieworg_set ? r_lightmap_vieworg : r_refdef.vieworg, 3 * sizeof (float));
 					int push_size = 11 * sizeof (uint32_t);
 					if (pipeline == &vulkan_globals.update_lightmap_rt_pipeline)
 					{
@@ -3765,10 +3765,13 @@ void R_UpdateLightmapsAndIndirect (void *unused)
 					lm->active_dlights[y][x] = false;
 					needs_update = true;
 				}
+				// Already updated this lightmap frame (the other eye's render): the same lights.
+				if (lm->updated_framecount[y][x] == r_lightmap_framecount)
+					continue;
 				if (needs_update)
 				{
 					any_needs_dlight_update = true;
-					if (lm->cached_framecount == r_framecount - 1)
+					if (lm->cached_framecount == r_lightmap_framecount - 1)
 						regions[y][x] = 1;
 					else
 						regions[y][x] = 2;
@@ -3796,8 +3799,12 @@ void R_UpdateLightmapsAndIndirect (void *unused)
 		{
 			for (int i = 0; i < MAX_LIGHTSTYLES; i++)
 				lm->cached_light[i] = d_lightstylevalue[i];
-			lm->cached_framecount = r_framecount;
+			lm->cached_framecount = r_lightmap_framecount;
 			num_lightmaps += num_blocks;
+			for (int y = 0; y < LMBLOCK_HEIGHT / LM_CULL_BLOCK_H; y++)
+				for (int x = 0; x < LMBLOCK_WIDTH / LM_CULL_BLOCK_W; x++)
+					if (regions[y][x])
+						lm->updated_framecount[y][x] = r_lightmap_framecount;
 		}
 
 		int batch_index = num_batch_lightmaps++;

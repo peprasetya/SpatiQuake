@@ -520,6 +520,12 @@ extern qboolean indirect;
 
 extern int		r_visframecount; // ??? what difs?
 extern int		r_framecount;
+// Lightmaps are updated for what a frame shows, and don't depend on the view: in the OpenXR mode
+// both eyes are one lightmap frame (the second eye updates only blocks the first didn't), lit as
+// seen from r_lightmap_vieworg, the head between the eyes.
+extern int		r_lightmap_framecount;
+extern vec3_t	r_lightmap_vieworg;
+extern qboolean r_lightmap_vieworg_set;
 extern mplane_t frustum[4];
 extern qboolean render_warp;
 extern qboolean in_update_screen;
@@ -670,7 +676,8 @@ struct lightmap_s
 	byte						  num_used_lightstyles[LMBLOCK_HEIGHT / LM_CULL_BLOCK_H][LMBLOCK_WIDTH / LM_CULL_BLOCK_W];
 	byte						  used_lightstyles[LMBLOCK_HEIGHT / LM_CULL_BLOCK_H][LMBLOCK_WIDTH / LM_CULL_BLOCK_W][MAX_LIGHTSTYLES];
 	int							  cached_light[MAX_LIGHTSTYLES];
-	int							  cached_framecount;
+	int							  cached_framecount; // r_lightmap_framecount of the last update
+	int							  updated_framecount[LMBLOCK_HEIGHT / LM_CULL_BLOCK_H][LMBLOCK_WIDTH / LM_CULL_BLOCK_W];
 
 	// the lightmap texture data needs to be kept in
 	// main memory so texsubimage can update properly

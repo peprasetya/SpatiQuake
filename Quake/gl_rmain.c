@@ -26,8 +26,11 @@ Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #include "tasks.h"
 #include "atomics.h"
 
-int r_visframecount; // bumped when going to a new PVS
-int r_framecount;	 // used for dlight push checking
+int		 r_visframecount; // bumped when going to a new PVS
+int		 r_framecount;	  // used for dlight push checking
+int		 r_lightmap_framecount = 1;
+vec3_t	 r_lightmap_vieworg;
+qboolean r_lightmap_vieworg_set;
 
 mplane_t frustum[4];
 

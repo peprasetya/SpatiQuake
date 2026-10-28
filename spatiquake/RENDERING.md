@@ -59,6 +59,13 @@ and is kept only if it stays inside the budget.
 
 * Update the lightmaps (and their ray-traced shadows) once a display frame, for the surfaces
   either eye can see, not once per eye. Today the right eye's render repeats much of the left's.
+  **Done** (`xr_sharedlightmaps 1`, the default): both eyes are one lightmap frame. The left eye's
+  render updates what it sees, and the right eye's updates only blocks the left didn't (surfaces
+  only it sees). Blocks near dynamic lights were recomputed, with their shadow rays, in both
+  renders; lightstyle changes already weren't. The update is lit as seen from the head, between
+  the eyes (it only decides which texels face away and get no dynamic light). `xr_sharedlightmaps
+  0` brings back the update per eye, for comparing with `xr_bench`; CI benchmarks both under fire
+  (rockets and explosions are dynamic lights).
 * Cull once for a view that covers both eyes; record what both eyes share once.
 * Particles: simulate once a frame (check that the second render doesn't step them again).
 * The 2D layer: drawn without the scene. **Done**: its frame skips the scene pass (the MSAA colour
