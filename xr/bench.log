@@ -18,7 +18,7 @@ Console initialized.
 UDP4 Initialized
 UDPv6 Initialized
 Server using protocol 999+ (FTE-RMQ)
-Exe: 17:52:45 Oct 28 2026 
+Exe: 18:23:46 Oct 28 2026 
 SDL Video Driver: x11
 OpenXR runtime: Spatiand 0.1.0
 OpenXR: 1920 x 1080 per eye
@@ -108,13 +108,13 @@ Allocating visibility buffers (5 KB)
 player entered the game
 Reallocating dynamic storage buffers (2 KB)
 xr_bench: measuring 20 frames
-xr_bench: 20 frames in lq_e1m1, display 13.89 ms (72 Hz); 19 late (95.0%), 705 display frames missed
+xr_bench: 20 frames in lq_e1m1, display 13.89 ms (72 Hz); 19 late (95.0%), 907 display frames missed
   GPU ms         avg    p95    max
-  left eye    260.15 266.08 266.08
-  right eye   246.24 252.68 252.68
-  2D            8.29   9.49   9.49
-  all three   514.68
-  CPU ms      527.68 761.97 761.97
+  left eye    332.97 339.90 339.90
+  right eye   314.56 321.76 321.76
+  2D           10.18  11.35  11.35
+  all three   657.71
+  CPU ms      674.10 980.15 980.15
   a frame: 15.0 lightmap blocks updated, 0.0 dynamic lights
 xr_bench: added to /home/runner/work/SpatiQuake/SpatiQuake/game/id1/xr_bench.txt
 Client player removed
