@@ -1871,6 +1871,9 @@ static void GL_CreateColorBuffer (void)
 	image_create_info.tiling = VK_IMAGE_TILING_OPTIMAL;
 	image_create_info.usage =
 		VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_STORAGE_BIT;
+	// The OpenXR mode's 2D layer clears the one it draws the 2D onto (R_ClearUIColorBuffer).
+	if (XR_Enabled ())
+		image_create_info.usage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 
 	for (i = 0; i < NUM_COLOR_BUFFERS; ++i)
 	{

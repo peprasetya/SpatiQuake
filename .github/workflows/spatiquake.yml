@@ -157,18 +157,17 @@ jobs:
           grep -A7 "^xr_bench: 20 frames" shots/bench-fire-$shared.log
         done
         cp game/id1/xr_bench.txt shots/
-    # The same frames with Vulkan's validation layer: what it reports is listed (one line per
-    # message ID), for the OpenXR mode's own changes to the frame (its targets, the 2D layer's frame
-    # without the scene) to be checked. Report only, for now.
+    # The same frames with Vulkan's validation layer (a debug build): what it reports is listed
+    # (one line per message ID), and any report fails the job.
     - name: Validation
-      continue-on-error: true
       run: |
         export XR_RUNTIME_JSON=$HOME/.local/share/spatiand-openxr/spatiand_openxr.json
         chmod +x build/vkquake-debug
         MAP=lq_e1m1 SHOT=xr_screenshot FRAMES=30 TIMEOUT=900 spatiquake/tools/smoke-test.sh build/vkquake-debug game shots/validation.png -xr -validation || true
-        grep -q "Using VK_LAYER_KHRONOS_validation" shots/validation.log || echo "the validation layer was not used"
         grep -oE "VUID-[A-Za-z0-9_-]+|UNASSIGNED-[A-Za-z0-9_.-]+|SYNC-[A-Za-z0-9_-]+" shots/validation.log | sort | uniq -c | sort -rn | tee shots/validation-summary.txt
-        grep -m5 -A3 "Validation Error" shots/validation.log || echo "no validation errors"
+        grep -q "Using VK_LAYER_KHRONOS_validation" shots/validation.log
+        if grep -q "Validation Error" shots/validation.log; then grep -m5 "Validation Error" shots/validation.log | cut -c1-400; exit 1; fi
+        echo "no validation errors"
     - uses: actions/upload-artifact@v7
       if: always()
       with:
