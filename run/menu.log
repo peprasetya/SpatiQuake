@@ -18,7 +18,7 @@ Console initialized.
 UDP4 Initialized
 UDPv6 Initialized
 Server using protocol 999+ (FTE-RMQ)
-Exe: 15:37:14 Oct 28 2026 
+Exe: 15:55:52 Oct 28 2026 
 SDL Video Driver: x11
 OpenXR: no runtime with XR_KHR_vulkan_enable2
 
@@ -89,4 +89,4 @@ couldn't exec config.cfg
 couldn't exec autoexec.cfg
 execing spatiquake_smoke.cfg
 Reallocating dynamic vertex buffers (512 KB)
-Wrote vkQuake--20261028-153810-00.png
+Wrote vkQuake--20261028-155644-00.png
