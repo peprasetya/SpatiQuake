@@ -727,6 +727,7 @@ void SCR_Init (void)
 
 	Cmd_AddCommand ("screenshot", SCR_ScreenShot_f);
 	Cmd_AddCommand ("xr_screenshot", SCR_XRScreenShot_f);
+	XR_Bench_Init ();
 	Cmd_AddCommand ("sizeup", SCR_SizeUp_f);
 	Cmd_AddCommand ("sizedown", SCR_SizeDown_f);
 
@@ -1686,8 +1687,12 @@ for the layer in front of the head. Drawn without tasks, one after another.
 static qboolean SCR_DrawXRTarget (xr_target_t target, const vec3_t base_origin, const vec3_t base_angles, const vrect_t *base_vrect)
 {
 	task_handle_t unused;
-	if (!GL_BeginRendering (false, &unused, &glwidth, &glheight))
+	gl_timing_tag = (int)target;
+	const qboolean began = GL_BeginRendering (false, &unused, &glwidth, &glheight);
+	gl_timing_tag = -1;
+	if (!began)
 		return false;
+	XR_Bench_GpuTime ();
 	GL_SetXRTarget ((int)XR_AcquireTarget (target), target == XR_TARGET_UI);
 
 	if (target == XR_TARGET_UI)
@@ -1756,6 +1761,7 @@ static void SCR_UpdateScreenXR (void)
 	GL_SynchronizeEndRenderingTask ();
 	if (!XR_BeginFrame ())
 		return;
+	const double work_start = Sys_DoubleTime (); // after the wait for the runtime
 
 	SCR_SetupFrame (NULL);
 	S_ExtraUpdate ();
@@ -1785,6 +1791,7 @@ static void SCR_UpdateScreenXR (void)
 	r_refdef.fov_x = base_fov_x;
 	r_refdef.fov_y = base_fov_y;
 	XR_EndFrame ();
+	XR_Bench_Frame (Sys_DoubleTime () - work_start);
 }
 
 /*

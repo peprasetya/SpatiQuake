@@ -635,6 +635,15 @@ void XR_ReleaseTarget (xr_target_t target)
 	sc->drawn = true;
 }
 
+qboolean XR_FrameTiming (double *display_time, double *display_period)
+{
+	if (!xr_frame_state.predictedDisplayTime)
+		return false;
+	*display_time = (double)xr_frame_state.predictedDisplayTime * 1e-9;
+	*display_period = (double)xr_frame_state.predictedDisplayPeriod * 1e-9;
+	return true;
+}
+
 void XR_EndFrame (void)
 {
 	if (!xr_frame_open)
@@ -1209,8 +1218,12 @@ uint32_t XR_AcquireTarget (xr_target_t target)
 {
 	return 0;
 }
-void XR_ReleaseTarget (xr_target_t target) {}
-void XR_EndFrame (void) {}
+void	 XR_ReleaseTarget (xr_target_t target) {}
+void	 XR_EndFrame (void) {}
+qboolean XR_FrameTiming (double *display_time, double *display_period)
+{
+	return false;
+}
 void XR_SetDrawingEye (int eye) {}
 int	 XR_DrawingEye (void)
 {

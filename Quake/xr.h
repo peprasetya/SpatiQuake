@@ -61,6 +61,14 @@ qboolean XR_BeginFrame (void);
 uint32_t XR_AcquireTarget (xr_target_t target); // index into the XR_GetSwapchainImages list
 void	 XR_ReleaseTarget (xr_target_t target);
 void	 XR_EndFrame (void);
+// The frame begun last: when the runtime will show it and the display's frame period, in seconds.
+qboolean XR_FrameTiming (double *display_time, double *display_period);
+
+// xr_bench (xr_bench.c): a picture's GPU time came back (rs_gputime_us, rs_gputime_tag); a display
+// frame was submitted, its work having taken cpu_seconds.
+void XR_Bench_Init (void);
+void XR_Bench_GpuTime (void);
+void XR_Bench_Frame (double cpu_seconds);
 
 // Per-eye view, while an eye is being drawn (XR_SetDrawingEye). The origin offset is in Quake
 // units, turned by body_yaw; angles are the eye's orientation with body_yaw added.

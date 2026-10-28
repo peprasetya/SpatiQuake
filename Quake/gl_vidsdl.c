@@ -144,6 +144,7 @@ static VkFence			command_buffer_fences[DOUBLE_BUFFERED];
 static qboolean			frame_submitted[DOUBLE_BUFFERED];
 static VkQueryPool		timestamp_query_pool;
 static qboolean			timestamps_written[DOUBLE_BUFFERED];
+static int				timestamps_tag[DOUBLE_BUFFERED]; // gl_timing_tag of the frame the timestamps are of
 static qboolean			frame_timing_enabled;
 static VkSemaphore		image_aquired_semaphores[DOUBLE_BUFFERED];
 static VkSemaphore		draw_complete_semaphores[MAX_SWAP_CHAIN_IMAGES];
@@ -223,6 +224,9 @@ static uint32_t current_swapchain_buffer;
 
 // Screenshots
 qboolean	take_screenshot = false;
+qboolean	gl_timing_wanted;	 // GPU timestamps wanted without scr_speeds (xr_bench)
+int			gl_timing_tag = -1;	 // what the frame being begun draws, given back with its GPU time
+int			rs_gputime_tag = -1; // gl_timing_tag of the frame rs_gputime_us is of, -1: none
 static char screenshot_ext[4];
 char		screenshot_imagename[MAX_OSPATH]; // johnfitz -- was [80]
 int			screenshot_quality;
@@ -3069,7 +3073,7 @@ void GL_BeginRenderingTask (void *unused)
 	VkResult err;
 
 	// Keep the profiling decision stable until this frame has been submitted.
-	frame_timing_enabled = scr_speeds.value != 0;
+	frame_timing_enabled = (scr_speeds.value != 0) || gl_timing_wanted;
 
 	// Wait for this slot's previous GPU submission to finish before reusing
 	// its command buffers and frame allocations.
@@ -3110,6 +3114,8 @@ void GL_BeginRenderingTask (void *unused)
 				VK_QUERY_RESULT_64_BIT) == VK_SUCCESS)
 			rs_gputime_us = (uint32_t)((double)(timestamps[1] - timestamps[0]) * (double)vulkan_globals.device_properties.limits.timestampPeriod / 1000.0);
 	}
+	rs_gputime_tag = (frame_timing_enabled && timestamps_written[current_cb_index]) ? timestamps_tag[current_cb_index] : -1;
+	timestamps_tag[current_cb_index] = gl_timing_tag;
 	timestamps_written[current_cb_index] = false;
 
 	R_CollectDynamicBufferGarbage ();

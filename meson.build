@@ -305,6 +305,7 @@ srcs = [
     'Quake/wad.c',
     'Quake/world.c',
     'Quake/xr.c',
+    'Quake/xr_bench.c',
 	'Quake/hash_map.c',
 	 run_generate_embedded_pak,
 ]

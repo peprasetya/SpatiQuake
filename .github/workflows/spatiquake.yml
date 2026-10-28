@@ -136,6 +136,14 @@ jobs:
         export XR_RUNTIME_JSON=$HOME/.local/share/spatiand-openxr/spatiand_openxr.json SPATIAND_OPENXR_STDERR=1
         MAP=lq_e1m1 SHOT=xr_screenshot FRAMES=120 TIMEOUT=300 spatiquake/tools/smoke-test.sh build/vkquake game shots/xr.png -xr
         grep -E "OpenXR: .*failed" shots/xr.log && exit 1 || true
+    # xr_bench in the map: lavapipe's times say nothing about a real GPU; this checks the command
+    # measures and writes its line. (On the Deck: `xr_bench 600` in a map, see spatiquake/RENDERING.md.)
+    - name: xr_bench
+      run: |
+        export XR_RUNTIME_JSON=$HOME/.local/share/spatiand-openxr/spatiand_openxr.json
+        MAP=lq_e1m1 SHOT="xr_bench 20" WANT=0 AFTER=1500 FRAMES=30 TIMEOUT=300 spatiquake/tools/smoke-test.sh build/vkquake game shots/bench.png -xr
+        grep -A6 "^xr_bench: 20 frames" shots/bench.log
+        cp game/id1/xr_bench.txt shots/
     - uses: actions/upload-artifact@v7
       if: always()
       with:

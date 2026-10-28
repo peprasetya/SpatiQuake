@@ -160,5 +160,7 @@ installed by dragging it into the room -- not an AppImage.
   (the right hand's grip pose) would be better when the gyro aims.
 * A swapchain re-creation in the middle of a frame (a video restart from a cvar change while in the
   OpenXR mode) is not handled carefully.
-* Modern rendering beyond vkQuake's ray-query shadows: to plan, sized to what the Deck sustains at
-  two eyes.
+* Modern rendering: planned in `spatiquake/RENDERING.md` (measure on the Deck; per-frame work
+  done once for both eyes; foveated shading and dynamic resolution with FSR 1; then HDR with
+  bloom, ray-traced model shadows and ray-traced bounce light in the lightmaps). Begun: `xr_bench`,
+  run in CI; the Deck's numbers are needed from the owner.

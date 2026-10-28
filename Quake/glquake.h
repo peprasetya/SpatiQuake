@@ -569,6 +569,10 @@ extern atomic_uint32_t rs_dynamiclightmaps, rs_brushpasses, rs_aliaspasses;
 // scr_speeds frame times: all accesses are ordered by the task graph (draw_done -> end_rendering -> begin_rendering -> draw_done)
 extern uint32_t		   rs_cputime_us, rs_gputime_us;
 extern uint32_t		   rs_gpuwaittime_us; // time the CPU spent blocked on the GPU during the last completed frame
+// rs_gputime_us is of a frame begun two frames ago: gl_timing_tag, set before GL_BeginRendering, comes
+// back as rs_gputime_tag with its time (-1: no time). gl_timing_wanted takes the times without scr_speeds.
+extern qboolean		   gl_timing_wanted;
+extern int			   gl_timing_tag, rs_gputime_tag;
 extern uint32_t		   rs_gpuwaitaccum_us;
 extern double		   rs_frame_starttime;
 extern char			   rs_display_lines[3][40]; // scr_speeds on screen overlay, updated from the counters once per frame

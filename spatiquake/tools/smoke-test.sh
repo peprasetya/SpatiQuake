@@ -7,7 +7,9 @@
 # e.g. "+map lq_e1m1". Without a DISPLAY an Xvfb is started; without a GPU Mesa's lavapipe draws.
 # FRAMES (default 60) is how many frames are drawn before the screenshot. SHOT (default
 # "screenshot png") is the command that takes it; with "xr_screenshot" (the OpenXR mode) there are
-# three pictures, saved as OUT with -left, -right and -2d before the .png. MAP loads that map
+# three pictures, saved as OUT with -left, -right and -2d before the .png. WANT overrides how
+# many pictures the command must leave (0 for a command that takes none, such as xr_bench), and
+# AFTER (default 30) how many waits follow it (in a map a slow frame can be many of them). MAP loads that map
 # first, from the test's own commands, and the frames are counted once the game has begun (a +map
 # given in ARGS loads while they are being counted, and the screenshot would find nothing drawn).
 set -euo pipefail
@@ -39,7 +41,7 @@ CFG="$BASEDIR/id1/spatiquake_smoke.cfg"
     # Then frames enough for it to be written (it is taken from the first frame that gets an image
     # to draw into).
     printf '%s\n' "$SHOT"
-    for ((i = 0; i < 30; i++)); do printf 'wait\n'; done
+    for ((i = 0; i < ${AFTER:-30}; i++)); do printf 'wait\n'; done
     # In a game, quit asks first (a menu); disconnected, it does not.
     printf 'disconnect\nwait\nquit\n'
 } > "$CFG"
@@ -57,13 +59,16 @@ mapfile -t SHOTS < <(find "$BASEDIR/id1" -maxdepth 1 -name 'vkQuake-*.png' -newe
 rm -f "$STAMP"
 want=1
 [[ "$SHOT" == xr_screenshot* ]] && want=3
+want="${WANT:-$want}"
 if (( ${#SHOTS[@]} < want )); then
     (( status == 124 )) && echo "timed out after ${TIMEOUT:-120} s" >&2
     echo "${#SHOTS[@]} screenshots, wanted $want (exit $status); the end of the log:" >&2
     tail -40 "$LOG" >&2
     exit 1
 fi
-if (( want == 1 )); then
+if (( want == 0 )); then
+    :
+elif (( want == 1 )); then
     mv "${SHOTS[0]}" "$OUT"
 else
     mv "${SHOTS[0]}" "${OUT%.png}-left.png"
