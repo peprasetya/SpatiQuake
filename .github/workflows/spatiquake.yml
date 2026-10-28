@@ -106,7 +106,7 @@ jobs:
       run: |
         sudo apt-get update
         sudo apt-get install -y xvfb mesa-vulkan-drivers libsdl2-2.0-0 libvorbisfile3 libmpg123-0t64 \
-          libflac12t64 libopusfile0 libopenxr-loader1 libwayland-dev pkg-config
+          libflac12t64 libopusfile0 libopenxr-loader1 libwayland-dev pkg-config vulkan-validationlayers
     - uses: actions/checkout@v6
       with:
         repository: peprasetya/spatiand
@@ -144,6 +144,16 @@ jobs:
         MAP=lq_e1m1 SHOT="xr_bench 20" WANT=0 AFTER=1500 FRAMES=30 TIMEOUT=300 spatiquake/tools/smoke-test.sh build/vkquake game shots/bench.png -xr
         grep -A6 "^xr_bench: 20 frames" shots/bench.log
         cp game/id1/xr_bench.txt shots/
+    # The same frames with Vulkan's validation layer: what it reports is listed (one line per
+    # message ID), for the OpenXR mode's own changes to the frame (its targets, the 2D layer's frame
+    # without the scene) to be checked. Report only, for now.
+    - name: Validation
+      continue-on-error: true
+      run: |
+        export XR_RUNTIME_JSON=$HOME/.local/share/spatiand-openxr/spatiand_openxr.json
+        MAP=lq_e1m1 SHOT=xr_screenshot FRAMES=30 TIMEOUT=600 spatiquake/tools/smoke-test.sh build/vkquake game shots/validation.png -xr -validation || true
+        grep -oE "VUID-[A-Za-z0-9_-]+|UNASSIGNED-[A-Za-z0-9_.-]+|SYNC-[A-Za-z0-9_-]+" shots/validation.log | sort | uniq -c | sort -rn | tee shots/validation-summary.txt
+        grep -m5 -A3 "Validation Error" shots/validation.log || echo "no validation errors"
     - uses: actions/upload-artifact@v7
       if: always()
       with:

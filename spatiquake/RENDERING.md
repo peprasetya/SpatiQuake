@@ -61,8 +61,11 @@ and is kept only if it stays inside the budget.
   either eye can see, not once per eye. Today the right eye's render repeats much of the left's.
 * Cull once for a view that covers both eyes; record what both eyes share once.
 * Particles: simulate once a frame (check that the second render doesn't step them again).
-* The 2D layer: draw it straight into its swapchain image, without the scene's colour and depth
-  buffers, MSAA resolve and post-process that an eye needs.
+* The 2D layer: drawn without the scene. **Done**: its frame skips the scene pass (the MSAA colour
+  and depth clears, OIT, the resolve), SSAO and the screen effects; the colour buffer the 2D is
+  drawn onto is cleared instead (`R_ClearUIColorBuffer`, `Quake/r_passes.c`). On lavapipe its GPU
+  time went from about 110 ms to 24 ms (the eyes' about 100 ms each). With a render scale
+  (`r_width`/`r_height`) the 2D still takes the full frame, for now.
 * **Expected**: the right eye's GPU and CPU time drops well below the left's.
 
 ### R2. Shade less where the glasses can't show it

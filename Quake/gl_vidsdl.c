@@ -3730,6 +3730,7 @@ task_handle_t GL_EndRendering (qboolean use_tasks, qboolean swapchain)
 		.polyblend = gl_polyblend.value != 0,
 		.menu = key_dest == key_menu,
 		.menu_alpha = 1.0f - M_MenuPreviewFraction (),
+		.ui_only = XR_Enabled () && (xr_target_image >= 0) && xr_target_is_layer,
 #if defined(_DEBUG)
 		.ray_debug = r_raydebug.value && (bmodel_tlas != VK_NULL_HANDLE),
 #endif

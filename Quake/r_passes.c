@@ -757,6 +757,33 @@ static void R_BindFrameContexts (main_render_pass_variant_t variant)
 	}
 }
 
+// For a frame of only the 2D: the colour buffer the UI pass draws the 2D onto, cleared and made
+// ready for it, as the scene pass would have left it.
+static void R_ClearUIColorBuffer (VkCommandBuffer command_buffer, const VkClearValue *clear_value)
+{
+	const VkImageSubresourceRange range = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1};
+	VkImageMemoryBarrier		  barrier = {
+				 .sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,
+				 .srcAccessMask = 0,
+				 .dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT,
+				 .oldLayout = VK_IMAGE_LAYOUT_UNDEFINED,
+				 .newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+				 .srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				 .dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED,
+				 .image = vulkan_globals.color_buffers[0],
+				 .subresourceRange = range,
+	 };
+	vkCmdPipelineBarrier (
+		command_buffer, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+		VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, NULL, 0, NULL, 1, &barrier);
+	vkCmdClearColorImage (command_buffer, vulkan_globals.color_buffers[0], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, &clear_value->color, 1, &range);
+	barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+	barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+	barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+	barrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+	vkCmdPipelineBarrier (command_buffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, 0, 0, NULL, 0, NULL, 1, &barrier);
+}
+
 // Execute only the already-compiled description. Late frame values such as
 // clear colors, swapchain image indices and compute constants are not topology.
 uint32_t R_RecordFrame (
@@ -776,6 +803,10 @@ uint32_t R_RecordFrame (
 		for (int i = 0; i < 4; ++i)
 			clear_values[msaa ? 4 : 3].color.float32[i] = 1.0f;
 
+	// Only the 2D (the OpenXR mode's 2D layer): the scene's passes and effects are skipped, and the
+	// colour buffer the 2D is drawn onto (the scene's, without upscaling) is cleared instead.
+	const bool ui_only = parms->ui_only && !current_layout.upscale;
+
 	uint32_t submit_count = 0;
 	bool	 recording_started = false;
 	for (uint32_t i = 0; i < frame->step_count; ++i)
@@ -784,6 +815,9 @@ uint32_t R_RecordFrame (
 		// The UI pass includes the swapchain attachment even without a postprocess draw.
 		// Skip the entire pass and its readback unless we own an acquired image.
 		if (!swapchain_acquired && (step->type == FRAME_READBACK || frame->passes[step->pass].target == FRAME_TARGET_UI))
+			continue;
+		if (ui_only && (step->type == FRAME_SCREEN_EFFECTS ||
+						(step->type != FRAME_PREPARED_COMMANDS && step->type != FRAME_READBACK && frame->passes[step->pass].target != FRAME_TARGET_UI)))
 			continue;
 		if (step->type == FRAME_PREPARED_COMMANDS || !recording_started)
 		{
@@ -803,7 +837,9 @@ uint32_t R_RecordFrame (
 		{
 			const bool			   ui = frame->passes[step->pass].target == FRAME_TARGET_UI;
 			const physical_pass_t *physical = &physical_passes[variant][step->pass];
-			const uint32_t		   image = ui ? swapchain_index : screen_effects ? 1 : 0;
+			if (ui && ui_only)
+				R_ClearUIColorBuffer (command_buffer, &parms->color_clear_value);
+			const uint32_t image = ui ? swapchain_index : screen_effects ? 1 : 0;
 			if (ui && (parms->render_width != parms->vid_width || parms->render_height != parms->vid_height))
 			{
 				// The fullscreen triangle samples the scene before the native-resolution GUI.
